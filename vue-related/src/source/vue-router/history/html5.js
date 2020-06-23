@@ -45,7 +45,7 @@ export class HTML5History extends History {
         }
       })
     }
-    window.addEventListener('popstate', handleRoutingEvent) // 绑定popstate监听器。点击前进、后退、刷新按钮以及输入地址栏并回车会触发popstate事件
+    window.addEventListener('popstate', handleRoutingEvent) // 绑定popstate监听器。点击前进、后退、调用history.go/back/forward会触发popstate事件
     this.listeners.push(() => { // 添加清理监听器的回调。
       window.removeEventListener('popstate', handleRoutingEvent)
     })
