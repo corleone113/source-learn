@@ -63,7 +63,9 @@
     "resolve-pathname": "^3.0.0",
     "tiny-invariant": "^1.0.2",
     "tiny-warning": "^1.0.0",
-    "value-equal": "^1.0.1"
+    "value-equal": "^1.0.1",
+    "mini-create-react-context": "^0.4.0",
+    "hoist-non-react-statics": "^3.1.0"
   },
   "scripts": {
     "start": "node scripts/start.js",
