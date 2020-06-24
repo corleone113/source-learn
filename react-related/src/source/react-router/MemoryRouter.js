@@ -8,7 +8,7 @@ import Router from "./Router.js";
 /**
  * The public API for a <Router> that stores location in memory.
  */
-class MemoryRouter extends React.Component {
+class MemoryRouter extends React.Component { // 使用MemoryHistory的Router
   history = createHistory(this.props);
 
   render() {
@@ -26,7 +26,7 @@ if (__DEV__) {
   };
 
   MemoryRouter.prototype.componentDidMount = function() {
-    warning(
+    warning( // 开发模式下发出提示——MemoryRouter会忽略自定义history
       !this.props.history,
       "<MemoryRouter> ignores the history prop. To use a custom history, " +
         "use `import { Router }` instead of `import { MemoryRouter as Router }`."

@@ -6,12 +6,12 @@ import warning from "tiny-warning";
 
 import Router from "./Router.js";
 
-function addLeadingSlash(path) {
+function addLeadingSlash(path) { // 添加首斜杠
   return path.charAt(0) === "/" ? path : "/" + path;
 }
 
-function addBasename(basename, location) {
-  if (!basename) return location;
+function addBasename(basename, location) { // 为location的pathname(路径)添加指定基路径
+  if (!basename) return location; // 没有传入basename则直接返回location
 
   return {
     ...location,
@@ -19,12 +19,12 @@ function addBasename(basename, location) {
   };
 }
 
-function stripBasename(basename, location) {
-  if (!basename) return location;
+function stripBasename(basename, location) { // 为location的pathname去掉指定的基路径
+  if (!basename) return location; // 没有传入basename则直接返回location
 
   const base = addLeadingSlash(basename);
 
-  if (location.pathname.indexOf(base) !== 0) return location;
+  if (location.pathname.indexOf(base) !== 0) return location; // pathname不包含basename也直接返回location
 
   return {
     ...location,
@@ -32,11 +32,11 @@ function stripBasename(basename, location) {
   };
 }
 
-function createURL(location) {
+function createURL(location) { // 将location转化为fullpath(pathname+search+hash)
   return typeof location === "string" ? location : createPath(location);
 }
 
-function staticHandler(methodName) {
+function staticHandler(methodName) { // 生成用于提示StaticRouter不支持某些操作的回调
   return () => {
     invariant(false, "You cannot %s with <StaticRouter>", methodName);
   };
@@ -51,17 +51,17 @@ function noop() {}
  * server-rendering scenarios.
  */
 class StaticRouter extends React.Component {
-  navigateTo(location, action) {
-    const { basename = "", context = {} } = this.props;
-    context.action = action;
-    context.location = addBasename(basename, createLocation(location));
-    context.url = createURL(context.location);
+  navigateTo(location, action) { // 通过context模拟导航行为
+    const { basename = "", context = {} } = this.props; // 从props获取基路径和导航类型
+    context.action = action; // PUSH,REPLACE,POP
+    context.location = addBasename(basename, createLocation(location)); // 为导航目标的路径属性添加基路径
+    context.url = createURL(context.location); // 用fullpath字符串作为相对url
   }
 
-  handlePush = location => this.navigateTo(location, "PUSH");
-  handleReplace = location => this.navigateTo(location, "REPLACE");
-  handleListen = () => noop;
-  handleBlock = () => noop;
+  handlePush = location => this.navigateTo(location, "PUSH"); // 进行push导航
+  handleReplace = location => this.navigateTo(location, "REPLACE"); // 进行replace导航
+  handleListen = () => noop; // 不支持导航监听
+  handleBlock = () => noop; // 不支持设置提示信息
 
   render() {
     const { basename = "", context = {}, location = "/", ...rest } = this.props;
@@ -72,8 +72,8 @@ class StaticRouter extends React.Component {
       location: stripBasename(basename, createLocation(location)),
       push: this.handlePush,
       replace: this.handleReplace,
-      go: staticHandler("go"),
-      goBack: staticHandler("goBack"),
+      go: staticHandler("go"), // 不支持go API
+      goBack: staticHandler("goBack"), // 不支持 back API
       goForward: staticHandler("goForward"),
       listen: this.handleListen,
       block: this.handleBlock
@@ -91,7 +91,7 @@ if (__DEV__) {
   };
 
   StaticRouter.prototype.componentDidMount = function() {
-    warning(
+    warning( // 开发模式下发出提示——StaticRouter会忽略自定义history
       !this.props.history,
       "<StaticRouter> ignores the history prop. To use a custom history, " +
         "use `import { Router }` instead of `import { StaticRouter as Router }`."

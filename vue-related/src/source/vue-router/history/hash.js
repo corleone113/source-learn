@@ -98,7 +98,7 @@ export class HashHistory extends History {
   }
 }
 
-function checkFallback (base) { // 检查是否已回退到哈希路由
+function checkFallback (base) { // 检查是否已回退到哈希模式
   const location = getLocation(base) // 获取当前的去掉base部分的URL路径
   if (!/^\/#/.test(location)) { // 不是哈希模式的URL则进行替换
     window.location.replace(cleanPath(base + '/#' + location))
@@ -120,14 +120,14 @@ export function getHash (): string { // 获取当前URL路径——去掉'/#'后
   // consistent across browsers - Firefox will pre-decode it!
   let href = window.location.href
   const index = href.indexOf('#')
-  // empty path // 非哈希路由，返回空字串
+  // empty path // 非哈希模式，返回空字串
   if (index < 0) return ''
 
   href = href.slice(index + 1) // 取#后面的路径部分作为href
   // decode the hash but not the search or hash
   // as search(query) is already decoded
   // https://github.com/vuejs/vue-router/issues/2708
-  // 下面的操作为了保证只解码哈希路由路径中路径片段部分，而不会解码查询字串和/或哈希片段
+  // 下面的操作为了保证只解码哈希模式路径中路径片段部分，而不会解码查询字串和/或哈希片段
   const searchIndex = href.indexOf('?') // 查询字符串起始索引
   if (searchIndex < 0) {
     const hashIndex = href.indexOf('#') // 哈希片段起始索引

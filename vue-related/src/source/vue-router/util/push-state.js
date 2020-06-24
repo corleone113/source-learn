@@ -10,7 +10,7 @@ export const supportsPushState = // 返回支持的pushState API
   (function () {
     const ua = window.navigator.userAgent
 
-    if ( // 3.3.4的vue-router的判定标准：2.0/4.0安卓下的移动端safari不支持pushState，replaceState
+    if ( // 2.0/4.0安卓下的移动端safari不支持pushState，replaceState
       (ua.indexOf('Android 2.') !== -1 || ua.indexOf('Android 4.0') !== -1) &&
       ua.indexOf('Mobile Safari') !== -1 &&
       ua.indexOf('Chrome') === -1 &&

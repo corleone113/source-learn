@@ -19,33 +19,33 @@ function Redirect({ computedMatch, to, push = false }) {
         const { history, staticContext } = context;
 
         const method = push ? history.push : history.replace;
-        const location = createLocation(
-          computedMatch
-            ? typeof to === "string"
-              ? generatePath(to, computedMatch.params)
+        const location = createLocation( // 创建重定向目标location
+          computedMatch // 判断computedMatch是否存在——computedMatch应该是一个对象，且带有pathname、search、hash、params等属性
+            ? typeof to === "string" // computedMatch存在则再判断to是否为字符串
+              ? generatePath(to, computedMatch.params) // computedMatch存在且to为字符串则基于to prop和computedMatch.params生成符合to规则且路径参数和computedMatchparams对应的目标URL路径
               : {
-                  ...to,
-                  pathname: generatePath(to.pathname, computedMatch.params)
+                  ...to, // 若computedMatch存在且to为对象则返回一个location对象
+                  pathname: generatePath(to.pathname, computedMatch.params) // 生成to.pathname(传入的to的pathname可以是一个路径规则字符串比如'/some/:id?')规则且路径参数和computedMatchparams对应的目标URL路径
                 }
-            : to
+            : to // 不存在computedMatch则直接使用to作为目标URL路径
         );
 
         // When rendering in a static context,
         // set the new location immediately.
-        if (staticContext) {
+        if (staticContext) { // 若用再StaticRouter中则发起导航
           method(location);
           return null;
         }
 
         return (
-          <Lifecycle
+          <Lifecycle // 默认情况通过Lifecycle实现的跳转只在挂载(页面加载/刷新)和更新且to发生变化时才会触发，所以要将Redirect用在Switch中，Switch组件会利用其from来进行跳转
             onMount={() => {
               method(location);
             }}
             onUpdate={(self, prevProps) => {
               const prevLocation = createLocation(prevProps.to);
               if (
-                !locationsAreEqual(prevLocation, {
+                !locationsAreEqual(prevLocation, { // 根据更新前后的location判断是否需要跳转(导航)
                   ...location,
                   key: prevLocation.key
                 })
@@ -53,7 +53,7 @@ function Redirect({ computedMatch, to, push = false }) {
                 method(location);
               }
             }}
-            to={to}
+            to={to} // 传入to方便后续更新时进行比对
           />
         );
       }}

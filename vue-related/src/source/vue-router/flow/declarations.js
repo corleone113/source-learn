@@ -33,7 +33,7 @@ type PositionResult = Position | { selector: string, offset?: Position } | void;
 declare type RouterOptions = {
   routes?: Array<RouteConfig>; // 路由配置对象数组
   mode?: string; // 路由模式——决定history版本
-  fallback?: boolean; // 不支持history.pushState和history.replaceState时是否回退到哈希路由
+  fallback?: boolean; // 不支持history.pushState和history.replaceState时是否回退到哈希模式
   base?: string; // 路由的基路径，默认值为 '/'
   linkActiveClass?: string; // 全局配置的链接激活状态时应用的类样式
   linkExactActiveClass?: string; // 全局配置的链接精确匹配时应用的类样式

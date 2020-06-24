@@ -42,7 +42,7 @@ export function resolvePath ( // 根据相对路径、基路径 解析出绝对�
   return stack.join('/')
 }
 
-export function parsePath (path: string): { // 将路径字符串分割为path,query,hash三部分，需要注意的是这里的hash是指hash片段，对于hash路由的路径，比如/#/some?id=343 实际上的传入这里的path是/some?id=343，而/#是会被去掉的。
+export function parsePath (path: string): { // 将路径字符串分割为path,query,hash三部分，需要注意的是这里的hash是指hash片段，对于hash模式的路径，比如/#/some?id=343 实际上的传入这里的path是/some?id=343，而/#是会被去掉的。
   path: string;
   query: string;
   hash: string;
@@ -51,13 +51,13 @@ export function parsePath (path: string): { // 将路径字符串分割为path,q
   let query = ''
 
   const hashIndex = path.indexOf('#')
-  if (hashIndex >= 0) { // hash片段位于末尾，所以先分割出hash字串。
+  if (hashIndex >= 0) { // 存在hash片段则进行分割——hash片段位于末尾，所以先分割出hash字串。
     hash = path.slice(hashIndex) // 包含sharp符号
     path = path.slice(0, hashIndex) // path被修改，去掉了hash部分
   }
 
   const queryIndex = path.indexOf('?')
-  if (queryIndex >= 0) { // 分割出查询字串
+  if (queryIndex >= 0) { // 存在查询字串则进行分割
     query = path.slice(queryIndex + 1) // 不包含问号
     path = path.slice(0, queryIndex) // path再次被修改，去掉了查询字符串部分
   }

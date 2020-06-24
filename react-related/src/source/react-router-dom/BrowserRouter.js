@@ -8,7 +8,7 @@ import warning from "tiny-warning";
  * The public API for a <Router> that uses HTML5 history.
  */
 class BrowserRouter extends React.Component {
-  history = createHistory(this.props);
+  history = createHistory(this.props); // 使用BrowserHistory的Router
 
   render() {
     return <Router history={this.history} children={this.props.children} />;
@@ -25,7 +25,7 @@ if (__DEV__) {
   };
 
   BrowserRouter.prototype.componentDidMount = function() {
-    warning(
+    warning( // 开发模式下发出提示——BrowserRouter会忽略自定义history
       !this.props.history,
       "<BrowserRouter> ignores the history prop. To use a custom history, " +
         "use `import { Router }` instead of `import { BrowserRouter as Router }`."

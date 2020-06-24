@@ -8,10 +8,10 @@ import RouterContext from "./RouterContext.js";
 /**
  * A public higher-order component to access the imperative API
  */
-function withRouter(Component) {
+function withRouter(Component) { // 让目标组件可以使用history、match、location等属性
   const displayName = `withRouter(${Component.displayName || Component.name})`;
   const C = props => {
-    const { wrappedComponentRef, ...remainingProps } = props;
+    const { wrappedComponentRef, ...remainingProps } = props; // 获取ref对象
 
     return (
       <RouterContext.Consumer>
@@ -24,7 +24,7 @@ function withRouter(Component) {
             <Component
               {...remainingProps}
               {...context}
-              ref={wrappedComponentRef}
+              ref={wrappedComponentRef} // 通过wrappedComponentRef.current获取包装后的组件实例
             />
           );
         }}
@@ -33,7 +33,7 @@ function withRouter(Component) {
   };
 
   C.displayName = displayName;
-  C.WrappedComponent = Component;
+  C.WrappedComponent = Component; // 指向原组件的静态属性
 
   if (__DEV__) {
     C.propTypes = {
@@ -45,7 +45,7 @@ function withRouter(Component) {
     };
   }
 
-  return hoistStatics(C, Component);
+  return hoistStatics(C, Component); // 从原组件上拷贝名称为非React特有关键字的静态属性
 }
 
 export default withRouter;

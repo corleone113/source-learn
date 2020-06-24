@@ -28,7 +28,7 @@ export default class VueRouter {
   mode: string;
   history: HashHistory | HTML5History | AbstractHistory;
   matcher: Matcher;
-  fallback: boolean; // 浏览器不支持history.pushState和history.replaceState的情况下是否回退到哈希路由
+  fallback: boolean; // 浏览器不支持history.pushState和history.replaceState的情况下是否回退到哈希模式
   beforeHooks: Array<?NavigationGuard>;
   resolveHooks: Array<?NavigationGuard>;
   afterHooks: Array<?AfterNavigationHook>;
@@ -42,7 +42,7 @@ export default class VueRouter {
     this.afterHooks = [] // 全局后置钩子数组
     this.matcher = createMatcher(options.routes || [], this) // 创建的匹配器
 
-    let mode = options.mode || 'hash'// 默认使用哈希路由
+    let mode = options.mode || 'hash'// 默认使用哈希模式
     this.fallback = mode === 'history' && !supportsPushState && options.fallback !== false
     if (this.fallback) { // 浏览器不支持history.pushState和history.replaceState且允许回退
       mode = 'hash'
