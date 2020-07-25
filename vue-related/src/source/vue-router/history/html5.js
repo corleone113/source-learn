@@ -13,10 +13,10 @@ export class HTML5History extends History {
   constructor (router: Router, base: ?string) {
     super(router, base)
 
-    this._startLocation = getLocation(this.base) // 用初次加载页面的去掉基路径的URL路径作为起始URL路径
+    this._startLocation = getLocation(this.base) // 用初次加载页面的去掉基路径的URL路径作为起始URL路径(location)
   }
 
-  setupListeners () {
+  setupListeners () { // 安装监听器
     if (this.listeners.length > 0) {
       return
     }
@@ -25,7 +25,7 @@ export class HTML5History extends History {
     const expectScroll = router.options.scrollBehavior // 目标
     const supportsScroll = supportsPushState && expectScroll
 
-    if (supportsScroll) { // 如果支持滚动则重置滚动机制
+    if (supportsScroll) { // 如果支持滚动则重置导航后的滚动机制
       this.listeners.push(setupScroll()) // 然后添加清理监听器的回调。
     }
 
@@ -35,7 +35,7 @@ export class HTML5History extends History {
       // Avoiding first `popstate` event dispatched in some browsers but first
       // history route not updated since async guard at the same time.
       const location = getLocation(this.base) // 返回当前页面的去掉了指定基路径的URL路径
-      if (this.current === START && location === this._startLocation) { // 要导航的目标路径为'/'或当前路径等于其实路径则直接退出
+      if (this.current === START && location === this._startLocation) { // 要导航的目标路径为'/'或当前路径等于起始路径则直接退出
         return
       }
 
@@ -86,7 +86,7 @@ export class HTML5History extends History {
 }
 
 export function getLocation (base: string): string { // 返回当前页面的去掉了指定基路径的URL路径
-  let path = decodeURI(window.location.pathname) // 获取当前页面原始URL路径
+  let path = decodeURI(window.location.pathname) // 获取当前页面的URL路径
   if (base && path.toLowerCase().indexOf(base.toLowerCase()) === 0) {
     path = path.slice(base.length) // 如果包含基路径则去除基路径部分
   }

@@ -6,8 +6,8 @@ import { stringifyQuery } from './query'
 const trailingSlashRE = /\/?$/
 
 export function createRoute ( // 创建路由
-  record: ?RouteRecord, // 可为null/undefined
-  location: Location,
+  record: ?RouteRecord, // 表示匹配的路由记录，可为null/undefined
+  location: Location, // 目标location对象，含有与目标URL相关的属性，比如：路径、查询参数、哈希片段、目标路由name
   redirectedFrom?: ?Location,
   router?: VueRouter
 ): Route {
@@ -34,7 +34,7 @@ export function createRoute ( // 创建路由
   return Object.freeze(route) // 冻结route对象，浅冻结
 }
 
-function clone (value) { // 深拷贝 不过没有考虑循环引用的情况。
+function clone (value) { // 深拷贝 不过没有考虑对象循环引用的情况。
   if (Array.isArray(value)) {
     return value.map(clone)
   } else if (value && typeof value === 'object') {
@@ -53,7 +53,7 @@ export const START = createRoute(null, {
   path: '/'
 })
 
-function formatMatch (record: ?RouteRecord): Array<RouteRecord> { // 将单个路由记录转化为依照父子关系存放的路由记录数组
+function formatMatch (record: ?RouteRecord): Array<RouteRecord> { // 递归地取出路由记录的父级路由记录来组成匹配的路由记录的数组。父级在前，子级在后。
   const res = []
   while (record) {
     res.unshift(record)
@@ -71,7 +71,7 @@ function getFullPath ( // 获取完整的URL路径
 }
 
 export function isSameRoute (a: Route, b: ?Route): boolean { // 判断是否是相同的路由
-  if (b === START) { // 根路径的路由是单例的
+  if (b === START) { // 根路径的路由是单例的，所以传入路由有一个为START则直接判断它们是否指向同一个引用即可
     return a === b
   } else if (!b) { // b为null或undefind直接返回false
     return false
@@ -88,12 +88,12 @@ export function isSameRoute (a: Route, b: ?Route): boolean { // 判断是否是�
       isObjectEqual(a.query, b.query) &&
       isObjectEqual(a.params, b.params)
     )
-  } else { // 其它基本类型的值也返回false
+  } else { // 其它情况下直接返回false
     return false
   }
 }
 
-function isObjectEqual (a = {}, b = {}): boolean { // 对象深比较
+function isObjectEqual (a = {}, b = {}): boolean { // 是对象则进行深比较，其它情况下使用Object.is的策略来比较
   // handle null value #1566
   if (!a || !b) return a === b
   const aKeys = Object.keys(a)
@@ -108,11 +108,11 @@ function isObjectEqual (a = {}, b = {}): boolean { // 对象深比较
     if (typeof aVal === 'object' && typeof bVal === 'object') {
       return isObjectEqual(aVal, bVal) // 如果属性值为对象，递归调用此方法进行比较。
     }
-    return String(aVal) === String(bVal)
+    return String(aVal) === String(bVal) // 可以处理NaN和+0、-0的情况
   })
 }
 
-export function isIncludedRoute (current: Route, target: Route): boolean { // 判断current路由是否包含target路由
+export function isIncludedRoute (current: Route, target: Route): boolean { // 判断current路由的路径是否包含target路由的路径
   return (
     current.path.replace(trailingSlashRE, '/').indexOf(
       target.path.replace(trailingSlashRE, '/')

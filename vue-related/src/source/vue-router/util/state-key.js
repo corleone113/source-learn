@@ -13,7 +13,7 @@ export function genStateKey (): string {
 
 let _key: string = genStateKey()
 
-export function getStateKey () { // 返回时间戳key
+export function getStateKey () { // 返回时间戳key——使用时间戳key作为state唯一标识
   return _key
 }
 

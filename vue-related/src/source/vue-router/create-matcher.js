@@ -23,7 +23,7 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
     createRouteMap(routes, pathList, pathMap, nameMap) // 这里相当于更新pathList，pathMap，nameMap
   }
 
-  function match ( // 返回和raw(目标位置)匹配的路由，顺序是：1.基于raw和currentRoute创建一个location；2.基于location查询路由记录；3.找到了就返回一个匹配路由并基于其matched在router-view中重新创建/更新视图，否则返回非匹配路由——matched为空数组，所以不更新router-view视图内容
+  function match ( // 返回和raw(目标位置)匹配的路由，顺序是：1.基于raw(目标位置)和currentRoute(当前路由)创建一个location(标准化的目标位置)；2.基于location查询路由记录；3.找到了就返回一个匹配路由并基于其matched在router-view中重新创建/更新视图，否则返回非匹配路由——matched为空数组，所以不更新router-view视图内容
     raw: RawLocation,
     currentRoute?: Route,
     redirectedFrom?: Location
@@ -39,7 +39,7 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
       if (!record) return _createRoute(null, location) // 没有找到记录则表示匹配失败，此时返回只基于location生成的非匹配路由
       const paramNames = record.regex.keys
         .filter(key => !key.optional)
-        .map(key => key.name) // 根据pathToRegexp返回的正则的keys属性确定必要的路径参数的名称数组
+        .map(key => key.name) // 根据pathToRegexp返回的正则的keys属性(数组)确定必要的路径参数的名称数组
 
       if (typeof location.params !== 'object') { // location.params不为对象则赋值为空对象
         location.params = {}
@@ -59,7 +59,7 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
       location.params = {}
       for (let i = 0; i < pathList.length; i++) { // 遍历pathList过程中会多次执行matchRoutes，所以效率相比于name要低很多
         const path = pathList[i]
-        const record = pathMap[path] // 找到当前遍历的path对应的路由记录
+        const record = pathMap[path] // 找到当前遍历到的path对应的路由记录
         if (matchRoute(record.regex, location.path, location.params)) { // 匹配成功
           return _createRoute(record, location, redirectedFrom) // 返回基于匹配记录和locaton创建的路由
         }
@@ -69,7 +69,7 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
     return _createRoute(null, location) // 匹配失败，返回只基于location创建的路由
   }
 
-  function redirect ( // 进行重定向也是通过返回一个匹配的路由来实现，过程和match方法的流程类似——将redirect转化为location——>查找路由记录——>找到了就返回匹配的路由否则返回基于传入的location生成的路由。
+  function redirect ( // 进行重定向也是通过返回一个匹配的路由来实现，过程和match方法的流程类似——将redirect转化为location——>查找路由记录——>找到了就返回匹配的路由否则返回基于目标位置的路由(不匹配的路由)。
     record: RouteRecord,
     location: Location
   ): Route {
@@ -91,10 +91,10 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
       return _createRoute(null, location) // redirect不合法，则返回非匹配路由
     }
 
-    const re: Object = redirect // 来自路由记录redirect的location对象
+    const re: Object = redirect // 拷贝redirect的引用，这里应该只是想缩短变量长度
     const { name, path } = re
     let { query, hash, params } = location
-    // 优先使用record location的这三个参数
+    // 提取查询参数对象、hash片段、路径参数对象，且优先考虑从redirect提取
     query = re.hasOwnProperty('query') ? re.query : query
     hash = re.hasOwnProperty('hash') ? re.hash : hash
     params = re.hasOwnProperty('params') ? re.params : params
@@ -146,7 +146,7 @@ export function createMatcher ( // 根据路由配置数组和路由器创建mat
     if (aliasedMatch) { // 这里有点问题，不管匹配是否成功，aliaseMatch都是一个路由对象，这个条件总是为true
       const matched = aliasedMatch.matched
       const aliasedRecord = matched[matched.length - 1] //  获取最后一个路由记录——这个路由记录的组件才是真正被渲染的组件。存在路由嵌套时matched长度就可能大于1了
-      location.params = aliasedMatch.params // 将待匹配路由的路径参数赋给location——创建路由时params来源于location
+      location.params = aliasedMatch.params // 将匹配得到的路由的路径参数赋给location——创建路由时params来源于location
       return _createRoute(aliasedRecord, location) // 返回基于和matchAs匹配的路由
     }
     return _createRoute(null, location) // 不会执行到这一行
@@ -187,7 +187,7 @@ function matchRoute ( // match方法中基于location.path来进行匹配时所�
 
   if (!m) { // 为null表示不匹配
     return false
-  } else if (!params) { // 不需要比较路径参数的话则表示匹配成功，不过这个方法没有暴露出去且在此模块中只在match方法中用到了，所以这个条件语句目前来说是多余的。
+  } else if (!params) { // 匹配成功且没有路径参数则直接返回
     return true
   }
   // 返回true之前用匹配结果m和regex.keys对params进行属性填充
@@ -203,6 +203,6 @@ function matchRoute ( // match方法中基于location.path来进行匹配时所�
   return true
 }
 
-function resolveRecordPath (path: string, record: RouteRecord): string { // 将路由记录的path解析为绝对路径
+function resolveRecordPath (path: string, record: RouteRecord): string { // 将路由记录的path解析为绝对路径，且总是附加模式
   return resolvePath(path, record.parent ? record.parent.path : '/', true)
 }

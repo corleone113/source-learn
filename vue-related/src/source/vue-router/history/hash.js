@@ -19,7 +19,7 @@ export class HashHistory extends History {
 
   // this is delayed until the app mounts
   // to avoid the hashchange listener being fired too early
-  setupListeners () {
+  setupListeners () { // 安装监听器
     if (this.listeners.length > 0) {
       return
     }
@@ -41,7 +41,7 @@ export class HashHistory extends History {
         if (supportsScroll) { // 导航结束且支持滚动就进行滚动处理
           handleScroll(this.router, route, current, true)
         }
-        if (!supportsPushState) { // 这里似乎没什么必要
+        if (!supportsPushState) { // 导航失败且不支持pushState方法的话还是要变更URL路径，应该是为了不影响其它hashchange事件监听器的执行。
           replaceHash(route.fullPath)
         }
       })
@@ -108,14 +108,14 @@ function checkFallback (base) { // 检查是否已回退到哈希模式
 
 function ensureSlash (): boolean { // 确认当前URL是否使用的哈希模式
   const path = getHash()
-  if (path.charAt(0) === '/') { // 表示当前使用的确实是哈希模式，否则将返回空字串
+  if (path.charAt(0) === '/') { // 表示当前使用的确实是哈希模式
     return true
   }
-  replaceHash('/' + path) // 执行到这里说明没有使用哈希模式的路径，则需要修改地址栏URL路径
+  replaceHash('/' + path) // 执行到这里说明没有使用哈希模式的路径，则需要修改哈希风格的路径
   return false
 }
 
-export function getHash (): string { // 获取当前URL路径——去掉'/#'后的剩余部分
+export function getHash (): string { // 用于判断当前路径是否为哈希风格的路径，且对路径中除开查询参数、哈希片段的部分进行解码，然后返回得到的路径字串
   // We can't use window.location.hash here because it's not
   // consistent across browsers - Firefox will pre-decode it!
   let href = window.location.href

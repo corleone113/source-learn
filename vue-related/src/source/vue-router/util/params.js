@@ -22,7 +22,7 @@ export function fillParams (
 
     // Fix #2505 resolving asterisk routes { name: 'not-found', params: { pathMatch: '/not-found' }}
     // and fix #3106 so that you can work with location descriptor object having params.pathMatch equal to empty string
-    if (typeof params.pathMatch === 'string') params[0] = params.pathMatch // 将params中的pathMatch参数还原为匿名路径参数
+    if (typeof params.pathMatch === 'string') params[0] = params.pathMatch // 将params中的pathMatch参数还原为匿名路径参数('(.*)')，关于匿名路径参数参考：https://github.com/pillarjs/path-to-regexp/tree/1.x#unnamed-parameters
 
     return filler(params, { pretty: true }) // pretty为true表示不对路径参数的值进行编译(通过encodeURIComponent)
   } catch (e) {

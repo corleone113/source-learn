@@ -44,12 +44,12 @@ export class History {
     this.router = router // 初始化router对象
     this.base = normalizeBase(base) // 用合法的基路径初始化base
     // start with a route object that stands for "nowhere"
-    this.current = START // 用path为'/'的路由初始化current
+    this.current = START // 用path为'/'的路由初始化current，current表示当前路由
     this.pending = null // 导航中的路由初始化为null
     this.ready = false
-    this.readyCbs = []
-    this.readyErrorCbs = []
-    this.errorCbs = []
+    this.readyCbs = [] // 初次导航成功时的回调数组
+    this.readyErrorCbs = []// 初次导航失败时的回调数组
+    this.errorCbs = [] // 导航失败时的回调数组
     this.listeners = [] // 清除事件监听器的回调数组
   }
 
@@ -84,7 +84,7 @@ export class History {
         const prev = this.current // 更新上一次的路由
         this.updateRoute(route) // 更新当前路由
         onComplete && onComplete(route) // 执行transitionTo接收的导航结束回调
-        this.ensureURL() // 确保url路径正确
+        this.ensureURL() // 确保URL路径已变更为目标路由对应的路径
         this.router.afterHooks.forEach(hook => { // 调用router.afterEach守卫
           hook && hook(route, prev)
         })
@@ -105,7 +105,7 @@ export class History {
           this.ready = true
           // Initial redirection should still trigger the onReady onSuccess
           // https://github.com/vuejs/vue-router/issues/3225
-          if (!isRouterError(err, NavigationFailureType.redirected)) { // 如果不是RouterError类型的错误则执行readyErrorCbs中的回调
+          if (!isRouterError(err, NavigationFailureType.redirected)) { // 如果不是重定向类型的RouterError则执行readyErrorCbs中的回调
             this.readyErrorCbs.forEach(cb => {
               cb(err)
             })
@@ -121,7 +121,7 @@ export class History {
 
   confirmTransition (route: Route, onComplete: Function, onAbort?: Function) {
     const current = this.current
-    const abort = err => { // 导航失败的回调
+    const abort = err => { // 导航失败/中断的回调
       // changed after adding errors with
       // https://github.com/vuejs/vue-router/pull/3047 before that change,
       // redirect and aborted navigation would produce an err == null
@@ -138,7 +138,7 @@ export class History {
       onAbort && onAbort(err) // 有中断回调则执行
     }
     // 取最后一个匹配是因为最后一个匹配的路由组件才是用于渲染的组件
-    const lastRouteIndex = route.matched.length - 1 // 导航目标路由的最有一个匹配记录的索引
+    const lastRouteIndex = route.matched.length - 1 // 导航目标路由的最后一个匹配记录的索引
     const lastCurrentIndex = current.matched.length - 1 // 当前路由的最后一个匹配记录的索引
     if ( // 如果目标路由和当前路由以及它们的匹配路由记录都一致，则抛出重复导航异常
       isSameRoute(route, current) &&
@@ -157,11 +157,11 @@ export class History {
 
     const queue: Array<?NavigationGuard> = [].concat( // 按照执行顺序将各种导航守卫排成一个队列，其中的数组会被展开
       // in-component leave guards
-      extractLeaveGuards(deactivated), // 失活的组件的beforeRouteLeave守卫数组
+      extractLeaveGuards(deactivated), // 提取出失活的组件的beforeRouteLeave守卫数组
       // global before hooks
       this.router.beforeHooks, // 全局的beforeEach守卫数组
       // in-component update hooks
-      extractUpdateHooks(updated), // 复用的组件的beforeRouteUpdate守卫数组
+      extractUpdateHooks(updated), // 提取出复用的组件的beforeRouteUpdate守卫数组
       // in-config enter guards
       activated.map(m => m.beforeEnter), // 匹配路由的beforeEnter守卫数组
       // async components
@@ -215,11 +215,11 @@ export class History {
         if (this.pending !== route) { // 守卫执行时如果修改了route(匹配路由)，则中断导航
           return abort(createNavigationCancelledError(current, route))
         }
-        this.pending = null // 导航结束
+        this.pending = null // 导航结束(导航已确认)
         onComplete(route)
         if (this.router.app) { // 存在激活的Vue组件实例，则处理beforeRouteEnter传给next的回调
           this.router.app.$nextTick(() => {
-            postEnterCbs.forEach(cb => { // 调用beforeRouteEnter守卫传递给next的回调
+            postEnterCbs.forEach(cb => { // 执行beforeRouteEnter守卫传递给next的回调
               cb() // 用轮询函数封装过的回调，使用的参数来自其闭包作用域
             })
           })
@@ -246,10 +246,10 @@ export class History {
 }
 
 function normalizeBase (base: ?string): string { // 获取标准化(合法)的基路径
-  if (!base) { // 如果传入的基路径不合法
-    if (inBrowser) { // 浏览器环境下
+  if (!base) { // 如果传入的基路径不合法则构造一个合法的基路径
+    if (inBrowser) {
       // respect <base> tag
-      const baseEl = document.querySelector('base') // 查询base标签
+      const baseEl = document.querySelector('base') // 查询base dom对象。
       base = (baseEl && baseEl.getAttribute('href')) || '/' // 如果存在base标签则使用其href作为URL基路径
       // strip full URL origin
       base = base.replace(/^https?:\/\/[^/]+/, '') // 去掉主机部分
@@ -297,7 +297,7 @@ function extractGuards ( // 返回提取的组件内导航守卫的回调数组�
     const guard = extractGuard(def, name) // 提取路由组件上的守卫
     if (guard) {
       return Array.isArray(guard)
-        ? guard.map(guard => bind(guard, instance, match, key))
+        ? guard.map(guard => bind(guard, instance, match, key)) // 路由守卫可以是数组——注册多个守卫
         : bind(guard, instance, match, key)
     }
   })
@@ -310,16 +310,16 @@ function extractGuard ( // 提取组件上导航守卫(钩子方法)，有可能
 ): NavigationGuard | Array<NavigationGuard> {
   if (typeof def !== 'function') {
     // extend now so that global mixins are applied.
-    def = _Vue.extend(def) // 全局mixin可能混入了组件内导航守卫，所以使用Vue.extend构建的组件。
+    def = _Vue.extend(def) // 使用Vue.extend构建的组件选项对象。
   }
-  return def.options[key]
+  return def.options[key] // 返回路由守卫
 }
 
-function extractLeaveGuards (deactivated: Array<RouteRecord>): Array<?Function> { //返回封装后的beforeRouteLeave守卫数组
+function extractLeaveGuards (deactivated: Array<RouteRecord>): Array<?Function> { //返回beforeRouteLeave守卫数组
   return extractGuards(deactivated, 'beforeRouteLeave', bindGuard, true)
 }
 
-function extractUpdateHooks (updated: Array<RouteRecord>): Array<?Function> { //返回封装后的beforeRouteUpdate守卫数组
+function extractUpdateHooks (updated: Array<RouteRecord>): Array<?Function> { //返回beforeRouteUpdate守卫数组
   return extractGuards(updated, 'beforeRouteUpdate', bindGuard)
 }
 
@@ -331,7 +331,7 @@ function bindGuard (guard: NavigationGuard, instance: ?_Vue): ?NavigationGuard {
   }
 }
 
-function extractEnterGuards ( // 返回封装后的beforeRouteEnter守卫数组
+function extractEnterGuards ( // 返回beforeRouteEnter守卫数组
   activated: Array<RouteRecord>,
   cbs: Array<Function>,
   isValid: () => boolean
@@ -364,7 +364,7 @@ function bindEnterGuard ( // 对beforeRouteEnter守卫进行封装以便能处�
           poll(cb, match.instances, key, isValid) // 通过轮询保证能让cb中可以访问组件实例
         })
       }
-      next(cb) // 非回调则交给next处理
+      next(cb) // 继续执行下一个守卫
     })
   }
 }

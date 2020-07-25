@@ -5,7 +5,7 @@ import { cleanPath } from './util/path'
 import { assert, warn } from './util/warn'
 
 export function createRouteMap (
-  routes: Array<RouteConfig>, // 路由配置对象
+  routes: Array<RouteConfig>, // 路由配置对象数组
   oldPathList?: Array<string>, // 可选参数，之前的路由path数组
   oldPathMap?: Dictionary<RouteRecord>, // 可选参数，之前的path到路由记录的映射表
   oldNameMap?: Dictionary<RouteRecord> // 可选参数，之前的name到路由记录的映射表
@@ -29,7 +29,7 @@ export function createRouteMap (
   for (let i = 0, l = pathList.length; i < l; i++) { // 确保通配路由位于path数组末尾——因为进行URL匹配时会按照pathList遍历顺序进行，通配路由会发挥它的真正作用——其它路由都不匹配时才匹配
     if (pathList[i] === '*') {
       pathList.push(pathList.splice(i, 1)[0])
-      // l和i减一是为了让下一个元素不会被跳过
+      // i减一是为了让下一个元素不会被跳过；l减一为了跳过最后一个元素(因为这个元素已经遍历过勒)
       l--
       i--
     }
@@ -54,7 +54,7 @@ export function createRouteMap (
   }
 }
 
-function addRouteRecord (// 对路由进行记录
+function addRouteRecord (// 基于路由配置对象生成路由记录对象，然后缓存路由path和路由记录对象。
   pathList: Array<string>,
   pathMap: Dictionary<RouteRecord>,
   nameMap: Dictionary<RouteRecord>,
@@ -126,7 +126,7 @@ function addRouteRecord (// 对路由进行记录
       const childMatchAs = matchAs // matchAs有效说明当前路由是别名路由，那么子路由也是别名路由，所以子路由的matchAs为 matchAs/child.path；否则不是别名路由，不配置matchAs参数
         ? cleanPath(`${matchAs}/${child.path}`)
         : undefined
-      addRouteRecord(pathList, pathMap, nameMap, child, record, childMatchAs)
+      addRouteRecord(pathList, pathMap, nameMap, child, record, childMatchAs) // 递归地缓存子路由path和子路由记录
     })
   }
 
@@ -136,7 +136,7 @@ function addRouteRecord (// 对路由进行记录
   }
 
   if (route.alias !== undefined) { // 如果配置了别名
-    const aliases = Array.isArray(route.alias) ? route.alias : [route.alias] // 别名可是多个——数组形式，且这里会转化为数组方便下面的遍历。
+    const aliases = Array.isArray(route.alias) ? route.alias : [route.alias] // 别名可是多个——字符串数组，不过就算不是数组也会转化为数组再处理。
     for (let i = 0; i < aliases.length; ++i) {
       const alias = aliases[i]
       if (process.env.NODE_ENV !== 'production' && alias === path) { // 路由的别名和path相同在开发模式下会发出警告
@@ -148,7 +148,7 @@ function addRouteRecord (// 对路由进行记录
         continue // 开发模式下alias与path相同则不会生效
       }
 
-      const aliasRoute = { // 以别名为路径和children构建一个当前路由的别名路由
+      const aliasRoute = { // 以别名为路径和子路由配置数组构建一个当前路由的别名路由
         path: alias,
         children: route.children
       }
@@ -166,7 +166,7 @@ function addRouteRecord (// 对路由进行记录
   if (name) { // 如果该路由是命名路由
     if (!nameMap[name]) { // 以name作为键将路由记录添加到nameMap中，且不能重复添加
       nameMap[name] = record
-    } else if (process.env.NODE_ENV !== 'production' && !matchAs) {// nameMap中已经存在该命名路由，那么说明存在两个路由使用了相同name属性的情况，在开发模式下会发出警告。
+    } else if (process.env.NODE_ENV !== 'production' && !matchAs) {// nameMap中已经存在该命名路由，且该路由不是别名路由，那么说明存在两个命名路由使用了相同name属性的情况，在开发模式下会发出警告。
       warn(
         false,
         `Duplicate named routes definition: ` +
@@ -199,8 +199,8 @@ function normalizePath (
   parent?: RouteRecord,
   strict?: boolean
 ): string {
-  if (!strict) path = path.replace(/\/$/, '') // 如果末尾斜杠是可选的则去掉
-  if (path[0] === '/') return path // 斜杠开头表示相对于根路径则不需要拼接，直接返回。
+  if (!strict) path = path.replace(/\/$/, '') // 如果strict为false则去掉path末尾斜杠
+  if (path[0] === '/') return path // 斜杠开头表示匹配绝对路径则不需要拼接，直接返回。
   if (parent == null) return path // 父级路由不存在则也不需要拼接，直接返回。
-  return cleanPath(`${parent.path}/${path}`) // 满足拼接条件，则与父级路由路径拼接后返回。
+  return cleanPath(`${parent.path}/${path}`) // 满足拼接条件，则与父级路由path拼接后返回。
 }
