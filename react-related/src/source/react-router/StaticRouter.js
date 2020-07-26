@@ -53,9 +53,9 @@ function noop() {}
 class StaticRouter extends React.Component {
   navigateTo(location, action) { // 通过context模拟导航行为
     const { basename = "", context = {} } = this.props; // 从props获取基路径和导航类型
-    context.action = action; // PUSH,REPLACE,POP
-    context.location = addBasename(basename, createLocation(location)); // 为导航目标的路径属性添加基路径
-    context.url = createURL(context.location); // 用fullpath字符串作为相对url
+    context.action = action; // 根据action设置导航类型，可选值有：PUSH、REPLACE、POP
+    context.location = addBasename(basename, createLocation(location)); // 为导航目标的pathname属性添加基路径
+    context.url = createURL(context.location); // 创建URL完整路径(fullpath)
   }
 
   handlePush = location => this.navigateTo(location, "PUSH"); // 进行push导航
@@ -74,7 +74,7 @@ class StaticRouter extends React.Component {
       replace: this.handleReplace,
       go: staticHandler("go"), // 不支持go API
       goBack: staticHandler("goBack"), // 不支持 back API
-      goForward: staticHandler("goForward"),
+      goForward: staticHandler("goForward"), // 不支持 goForward API
       listen: this.handleListen,
       block: this.handleBlock
     };

@@ -2,7 +2,7 @@ export function addLeadingSlash(path) { // 添加首'/'
   return path.charAt(0) === '/' ? path : '/' + path;
 }
 
-export function stripLeadingSlash(path) {
+export function stripLeadingSlash(path) { // 删除首'/'
   return path.charAt(0) === '/' ? path.substr(1) : path;
 }
 

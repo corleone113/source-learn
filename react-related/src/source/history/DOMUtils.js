@@ -1,4 +1,4 @@
-export const canUseDOM = !!(
+export const canUseDOM = !!( // 判断是否支持DOM——即是否在浏览器环境下
   typeof window !== 'undefined' &&
   window.document &&
   window.document.createElement
@@ -18,7 +18,7 @@ export function getConfirmation(message, callback) { // 默认的过渡前确认
 export function supportsHistory() { // 判断是否支持history.pushState以及history.replaceState
   const ua = window.navigator.userAgent;
 
-  if ( // 2.0/4.0安卓下的移动端safari不支持pushState，replaceState
+  if ( // 2.x/4.0安卓下的移动端safari不支持pushState，replaceState
     (ua.indexOf('Android 2.') !== -1 || ua.indexOf('Android 4.0') !== -1) &&
     ua.indexOf('Mobile Safari') !== -1 &&
     ua.indexOf('Chrome') === -1 &&
@@ -33,7 +33,7 @@ export function supportsHistory() { // 判断是否支持history.pushState以及
  * Returns true if browser fires popstate on hash change.
  * IE10 and IE11 do not.
  */
-export function supportsPopStateOnHashChange() { // 判断hashchange是否触发popstate
+export function supportsPopStateOnHashChange() { // 判断触发hashchange时是也会触发popstate
   return window.navigator.userAgent.indexOf('Trident') === -1; // IE不支持hashchange触发popstate
 }
 

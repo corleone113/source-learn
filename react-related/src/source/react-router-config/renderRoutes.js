@@ -12,9 +12,9 @@ function renderRoutes(routes, extraProps = {}, switchProps = {}) { // 将路由�
           strict={route.strict}
           render={props => // 通过render prop渲染
             route.render ? (
-              route.render({ ...props, ...extraProps, route: route }) // 路由配置以route prop传入路由组件
+              route.render({ ...props, ...extraProps, route: route }) // 存在render prop使用它来渲染组件
             ) : (
-              <route.component {...props} {...extraProps} route={route} /> // 路由配置以route prop传入路由组件
+              <route.component {...props} {...extraProps} route={route} /> // 否则使用component prop来进行渲染——即只能通过render/component prop作为渲染属性
             )
           }
         />

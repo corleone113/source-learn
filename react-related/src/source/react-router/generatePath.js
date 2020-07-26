@@ -1,13 +1,13 @@
 import pathToRegexp from "path-to-regexp";
 
-const cache = {}; // 根据path规则字符串缓存正则的映射表
+const cache = {}; // 根据path规则字符串缓存compiler函数
 const cacheLimit = 10000; // 缓存上限数量
 let cacheCount = 0; // 缓存数量计数器
 
 function compilePath(path) { // 返回一个回调，这个回调会将params(路径参数对象)转化为符合path规则的路径字符串
   if (cache[path]) return cache[path]; // 存在缓存则直接使用缓存
 
-  const generator = pathToRegexp.compile(path); // 生成正则
+  const generator = pathToRegexp.compile(path); // 生成compiler函数
 
   if (cacheCount < cacheLimit) { // 不超过上限则进行缓存
     cache[path] = generator;

@@ -1,11 +1,11 @@
 import pathToRegexp from "path-to-regexp";
 
-const cache = {}; // 基于配置选项缓存pathCache的映射表，pathCache是缓存path规则字符串的映射表
+const cache = {}; // 基于配置选项缓存pathCache的映射表，pathCache是缓存对应pathToRegexp生成结果的映射表
 const cacheLimit = 10000; // pathCache最大缓存量为10000个
 let cacheCount = 0;
 
 function compilePath(path, options) { // 根据规则字符串和选项对象获取规则结果
-  const cacheKey = `${options.end}${options.strict}${options.sensitive}`; // cache的键由配置对象的
+  const cacheKey = `${options.end}${options.strict}${options.sensitive}`; // cache的键由配置对象的end、strict、sensitive等属性值组成
   const pathCache = cache[cacheKey] || (cache[cacheKey] = {}); // 基于配置选项获取pathCache映射表
 
   if (pathCache[path]) return pathCache[path]; // 如果符合path和options的规则结果缓存过则使用缓存
@@ -43,12 +43,12 @@ function matchPath(pathname, options = {}) { // 对URL路径和规则对象进�
       strict,
       sensitive
     });
-    const match = regexp.exec(pathname); // 得到匹配数组
+    const match = regexp.exec(pathname); // 根据当前URL路径得到匹配数组
 
     if (!match) return null; // 不匹配则返回
 
     const [url, ...values] = match;
-    const isExact = pathname === url; // 匹配字串和URL路径一样则表示精确匹配
+    const isExact = pathname === url; // 匹配字串和URL路径一样则表示精确匹配。这一步和下面一步起始是多余的
 
     if (exact && !isExact) return null; // 要求精确匹配却不满足则返回null
 

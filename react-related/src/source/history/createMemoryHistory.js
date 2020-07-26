@@ -75,7 +75,7 @@ function createMemoryHistory(props = {}) {
             location
           );
         } else {
-          nextEntries.push(location); // 相等则直接添加在末尾即可
+          nextEntries.push(location); // 否则直接添加在末尾即可
         }
 
         setState({ // 发起过渡

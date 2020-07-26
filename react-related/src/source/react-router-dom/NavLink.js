@@ -56,7 +56,7 @@ const NavLink = forwardRef(
           const escapedPath =
             path && path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"); // 特殊字符进行转义
 
-          const match = escapedPath // 如果escapedPath则计算匹配结果，这个匹配结果用于判断激活状态
+          const match = escapedPath // 如果存在有效的escapedPath则计算匹配结果，这个匹配结果用于判断激活状态
             ? matchPath(currentLocation.pathname, {
                 path: escapedPath,
                 exact, // end和strict只有在提供了locationProp的情况才有效果，因为在使用context.location的情况下，currentLocation.pathname和escapedPath总是匹配的

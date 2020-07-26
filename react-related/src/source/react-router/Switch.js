@@ -27,7 +27,6 @@ class Switch extends React.Component {
           React.Children.forEach(this.props.children, child => {
             if (match == null && React.isValidElement(child)) { // 如果还没有匹配且当前子节点(React元素)有效时才计算element和match的值
               element = child;
-
               const path = child.props.path || child.props.from; // 优先使用子节点(React元素)的path prop(针对Route),其次才考虑使用from(针对Redirect)
 
               match = path
@@ -37,7 +36,7 @@ class Switch extends React.Component {
           });
 
           return match
-            ? React.cloneElement(element, { location, computedMatch: match }) // 匹配成功就渲染对应子节点并复用location和提供computedMatch
+            ? React.cloneElement(element, { location, computedMatch: match }) // 匹配成功就渲染对应子节点并复用location和提供computedMatch prop
             : null;
         }}
       </RouterContext.Consumer>

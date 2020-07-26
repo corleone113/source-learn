@@ -7,7 +7,7 @@ import matchPath from "./matchPath.js";
 
 const useContext = React.useContext;
 
-export function useHistory() { // 访问router下history的hook
+export function useHistory() { // 返回router下history的hook
   if (__DEV__) {
     invariant(
       typeof useContext === "function",
@@ -18,7 +18,7 @@ export function useHistory() { // 访问router下history的hook
   return useContext(HistoryContext);
 }
 
-export function useLocation() { // 访问router下location的hook
+export function useLocation() { // 返回router下location的hook
   if (__DEV__) {
     invariant(
       typeof useContext === "function",
@@ -29,7 +29,7 @@ export function useLocation() { // 访问router下location的hook
   return useContext(Context).location;
 }
 
-export function useParams() { // 访问router下match.params的hook
+export function useParams() { // 返回router下match.params的hook
   if (__DEV__) {
     invariant(
       typeof useContext === "function",
@@ -41,7 +41,7 @@ export function useParams() { // 访问router下match.params的hook
   return match ? match.params : {};
 }
 
-export function useRouteMatch(path) { // 访问当前位置是否匹配给定path的match的hook
+export function useRouteMatch(path) { // 返回当前位置是否匹配给定path字符串/对象的match(匹配结果)的hook
   if (__DEV__) {
     invariant(
       typeof useContext === "function",

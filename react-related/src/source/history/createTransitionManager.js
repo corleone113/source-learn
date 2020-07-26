@@ -1,6 +1,6 @@
 import warning from './warning.js';
 
-function createTransitionManager() { // 创建过渡管理器
+function createTransitionManager() { // 创建过渡管理器——用于管理导航
   let prompt = null; // 过渡前提示信息
 
   function setPrompt(nextPrompt) { // 设置提示信息，返回重置提示信息的回调

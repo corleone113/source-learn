@@ -11,7 +11,7 @@ function isEmptyChildren(children) { // 判断React元素内容是否为空
   return React.Children.count(children) === 0;
 }
 
-function evalChildrenDev(children, props, path) { // 开发模式的children prop 函数的执行器。path来自<Route>上的props
+function evalChildrenDev(children, props, path) { // 开发模式的children prop 函数组件的执行器。path来自<Route>上的props
   const value = children(props);
 
   warning( // 如果children prop 函数返回值非法则发出警告
@@ -35,13 +35,13 @@ class Route extends React.Component {
           invariant(context, "You should not use <Route> outside a <Router>"); // context为空说明<Route>不在<Router>中，此时抛出异常
 
           const location = this.props.location || context.location; // 优先使用来自props的location,没有则使用context.location
-          const match = this.props.computedMatch // 如果存在computedMatch prop则用它作为match
+          const match = this.props.computedMatch // 如果存在computedMatch prop(<Route>作为<Switch>子元素时由<Switch>提供)则用它作为match
             ? this.props.computedMatch // <Switch> already computed the match for us
             : this.props.path // 存在path prop则使用matchPath函数基于当前URL路径(location.pathname)和props计算匹配结果
             ? matchPath(location.pathname, this.props)
             : context.match; // 没有则使用context.match(默认值)
 
-          const props = { ...context, location, match };
+          const props = { ...context, location, match }; // 使用context中属性作为提供给子组件的props，且更新location和match
 
           let { children, component, render } = this.props;
 
@@ -59,7 +59,7 @@ class Route extends React.Component {
                     ? __DEV__ // 若匹配且存在children prop且children prop为函数组件则判断是否在开发模式下
                       ? evalChildrenDev(children, props, this.props.path)  // 若匹配且存在children prop且children prop为函数组件且处于开发模式下则返回执行器下children函数组件的执行结果
                       : children(props) // 若匹配且存在children prop且children prop为函数组件且处于生产模式下则直接返回children函数组件的执行结果
-                    : children // 若匹配且存在children prop且children prop为React元素(虚拟DOM节点)或文本也直接返回
+                    : children // 若匹配且存在children prop且children prop不是函数组件也直接返回
                   : component // 若匹配且不存在children prop则判断component prop是否存在
                   ? React.createElement(component, props)  // 若匹配且不存在children prop且component prop存在则返回以component作为type创建的React元素
                   : render // 若匹配且不存在children prop且不存在component prop则判断render prop是否存在

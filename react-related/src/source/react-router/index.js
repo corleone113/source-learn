@@ -1,5 +1,5 @@
 if (__DEV__) {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined") { // 尝试以两种模块系统加载react-router在开发模式下会报错
     const global = window;
     const key = "__react_router_build__";
     const buildNames = { cjs: "CommonJS", esm: "ES modules", umd: "UMD" };

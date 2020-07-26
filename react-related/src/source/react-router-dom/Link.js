@@ -14,7 +14,7 @@ if (typeof forwardRef === "undefined") {
   forwardRef = forwardRefShim;
 }
 
-function isModifiedEvent(event) { // 判断是否时修改事件
+function isModifiedEvent(event) { // 判断触发事件时是否按下修改键
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
@@ -22,7 +22,7 @@ const LinkAnchor = forwardRef(
   (
     {
       innerRef, // TODO: deprecate // 15以下的备用ref
-      navigate, // 导航使用的回调
+      navigate, // 用于发起导航的回调
       onClick, // 点击事件监听器
       ...rest
     },
@@ -32,7 +32,7 @@ const LinkAnchor = forwardRef(
 
     let props = {
       ...rest,
-      onClick: event => {
+      onClick: event => { // 对提供的点击事件监听器进行劫持
         try {
           if (onClick) onClick(event); // 执行传入的监听器
         } catch (ex) {
@@ -41,10 +41,10 @@ const LinkAnchor = forwardRef(
         }
 
         if (
-          !event.defaultPrevented && // onClick prevented default // onClick中没有调用过preventDefault方法
-          event.button === 0 && // ignore everything but left clicks
+          !event.defaultPrevented && // onClick prevented default // onClick中没有调用过preventDefault方法才会发起导航
+          event.button === 0 && // ignore everything but left clicks // 只有点击鼠标左键才会发起导航
           (!target || target === "_self") && // let browser handle "target=_blank" etc.
-          !isModifiedEvent(event) // ignore clicks with modifier keys
+          !isModifiedEvent(event) // ignore clicks with modifier keys // 按下修改键时也不会发起导航
         ) {
           event.preventDefault();
           navigate(); // 发起导航
