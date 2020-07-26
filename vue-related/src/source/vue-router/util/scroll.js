@@ -9,7 +9,7 @@ const positionStore = Object.create(null)
 
 export function setupScroll () { // 自定义浏览器前进/后退/跳跃(go)的滚动行为
   // Prevent browser scroll behavior on History popstate
-  if ('scrollRestoration' in window.history) { // 
+  if ('scrollRestoration' in window.history) { // 阻止浏览器默认的导航结束时的滚动行为
     window.history.scrollRestoration = 'manual'
   }
   // Fix for #1585 for Firefox
@@ -23,13 +23,13 @@ export function setupScroll () { // 自定义浏览器前进/后退/跳跃(go)�
   const stateCopy = extend({}, window.history.state)
   stateCopy.key = getStateKey() // 复用缓存的时间戳key
   window.history.replaceState(stateCopy, '', absolutePath) // 重置当前历史记录项，方便后续通过时间戳key复用滚动条坐标
-  window.addEventListener('popstate', handlePopState) // 触发popstate时进行缓存滚动条坐标
+  window.addEventListener('popstate', handlePopState) // 触发popstate时只是缓存滚动条坐标，而不会进行滚动
   return () => {
     window.removeEventListener('popstate', handlePopState)
   }
 }
 
-export function handleScroll ( // 处理滚动事件
+export function handleScroll ( // 处理滚动
   router: Router,
   to: Route,
   from: Route,
@@ -49,13 +49,13 @@ export function handleScroll ( // 处理滚动事件
   }
 
   // wait until re-render finishes before scrolling
-  router.app.$nextTick(() => {
+  router.app.$nextTick(() => { // 渲染结束后再滚动
     const position = getScrollPosition() // 以缓存的滚动条坐标初始化position
     const shouldScroll = behavior.call( // 获取滚动回调结果
       router,
       to,
       from,
-      isPop ? position : null // 是popstate事件则传入缓存的坐标
+      isPop ? position : null // 是popstate事件触发的(即回退行为)则传入缓存的坐标
     )
 
     if (!shouldScroll) { // 没有返回值则直接退出
@@ -96,7 +96,7 @@ function handlePopState (e) { // popstate事件监听器
 }
 
 function getScrollPosition (): ?Object {
-  const key = getStateKey() // 获取时间戳key
+  const key = getStateKey() // 获取当前历史记录项state.key
   if (key) { // 如果是缓存过位置则返回该位置
     return positionStore[key]
   }
@@ -138,7 +138,7 @@ const hashStartsWithNumberRE = /^#\d/
 
 function scrollToPosition (shouldScroll, position) { // 文档页面滚动到指定坐标
   const isObject = typeof shouldScroll === 'object'
-  if (isObject && typeof shouldScroll.selector === 'string') { // 位置对象带有选择器属性的话
+  if (isObject && typeof shouldScroll.selector === 'string') { // 传入selector(元素选择器)则重新计算坐标
     // getElementById would still fail if the selector contains a more complicated query like #main[data-attr]
     // but at the same time, it doesn't make much sense to select an element with an id and an extra selector
     const el = hashStartsWithNumberRE.test(shouldScroll.selector) // $flow-disable-line
@@ -152,7 +152,7 @@ function scrollToPosition (shouldScroll, position) { // 文档页面滚动到指
           : {}
       offset = normalizeOffset(offset) // 得到合法的坐标
       position = getElementPosition(el, offset) // 获取以指定元素为参照的偏移坐标
-    } else if (isValidPosition(shouldScroll)) { // 找不到对应元素时
+    } else if (isValidPosition(shouldScroll)) { // 找不到对应元素时直接使用原值
       position = normalizePosition(shouldScroll)
     }
   } else if (isObject && isValidPosition(shouldScroll)) { // 不带选择器属性的话

@@ -15,7 +15,7 @@ export default {
   name: 'RouterLink',
   props: {
     to: {
-      type: toTypes, // 目标URL路径
+      type: toTypes, // 目标位置(目标location)
       required: true
     },
     tag: { // 该链接组件的元素标签类型
@@ -25,8 +25,8 @@ export default {
     exact: Boolean, // 是否精确匹配
     append: Boolean, // 如果to指定的路径为相对路径，则true表示拼接，false表示替换——比如当前URL路径为'/root/some/path'，而to或to.path为'page'，那么当append为true时目标路径为'/root/some/path/page',否则为'/root/some/page'
     replace: Boolean, // 为true则调用router.replace，否则调用router.push
-    activeClass: String, // 当前URL路径和to指定的路径匹配时应用于该链接的class
-    exactActiveClass: String, // 当前URL路径和to指定的路径精确匹配时应用于该链接的class
+    activeClass: String, // 当前路由匹配时应用于该链接的class
+    exactActiveClass: String, // 当前路由精确匹配时应用于该链接的class
     ariaCurrentValue: { // 当前URL路径和to指定的路径精确匹配时配置的aria-current的值
       type: String,
       default: 'page'
@@ -39,7 +39,7 @@ export default {
   render (h: Function) {
     const router = this.$router
     const current = this.$route
-    const { location, route, href } = router.resolve( // 解析出location、匹配路由、路径字符串。这些对象仅在创建链接时使用
+    const { location, route, href } = router.resolve( // 解析出目标位置匹配时location、匹配路由、路径字符串。这些对象仅在创建链接时使用
       this.to,
       current,
       this.append
@@ -62,9 +62,9 @@ export default {
         ? exactActiveClassFallback
         : this.exactActiveClass // 没有配置exactActiveClass则使用备用版本
 
-    const compareTarget = route.redirectedFrom // 创建和to指定的路径匹配的路由，用于进行比较
-      ? createRoute(null, normalizeLocation(route.redirectedFrom), null, router) // 已经跳转过则需要创建一个跳转前地址的路由，所以如果该链接指向一个跳转路由，则永远无法应用activeClass，触发跳转前的路径和跳转后的可以匹配
-      : route // 没跳转过则不需要新建
+    const compareTarget = route.redirectedFrom // 创建和目标位置匹配时的路由，用于进行比较
+      ? createRoute(null, normalizeLocation(route.redirectedFrom), null, router) // 已经重定向过则需要创建一个跳转前地址的路由，所以如果该链接指向一个重定向路由，则永远无法应用activeClass，触发跳转前的路径和跳转后的可以匹配
+      : route // 没重定向过则不需要新建
     // 需要在创建链接时生成激活状态class
     classes[exactActiveClass] = isSameRoute(current, compareTarget) // 当前路由和用于比较的路由完全一样则表示精确匹配
     classes[activeClass] = this.exact
@@ -94,7 +94,7 @@ export default {
 
     const data: any = { class: classes }
     const scopedSlot =
-      !this.$scopedSlots.$hasNormal && // 没有非作用域插槽
+      !this.$scopedSlots.$hasNormal && // 没有匿名插槽
       this.$scopedSlots.default && // 含有默认作用域插槽
       this.$scopedSlots.default({
         href,
@@ -125,26 +125,26 @@ export default {
       data.attrs = { href, 'aria-current': ariaCurrentValue }
     } else {
       // find the first <a> child and apply listener and href
-      const a = findAnchor(this.$slots.default) // 找到子孙节点中的a元素
+      const a = findAnchor(this.$slots.default) // 找到子孙节点中的a元素的vnode，然后修改其数据对象的attrs和on，避免发生冲突。
       if (a) {
         // in case the <a> is a static node
         a.isStatic = false
         const aData = (a.data = extend({}, a.data)) // 浅拷贝a元素vnode上的数据对象
-        aData.on = aData.on || {} // 初始化事件监听器对象
+        aData.on = aData.on || {} // 初始化事件监听器对象,由于是浅拷贝aData.on和a.data.on指向相同的引用
         // transform existing events in both objects into arrays so we can push later
         for (const event in aData.on) {
           const handler = aData.on[event]
-          if (event in on) { // 如果一个事件的监听器不止一个则将其转化为数组
+          if (event in on) { // 如果一个事件的监听器只有一个则将其转化为数组
             aData.on[event] = Array.isArray(handler) ? handler : [handler]
           }
         }
         // append new listeners for router-link
         for (const event in on) {
-          if (event in aData.on) { // 添加重复的监听器.
+          if (event in aData.on) {
             // on[event] is always a function
-            aData.on[event].push(on[event])
+            aData.on[event].push(on[event]) // 存在的监听器已经转化为数组，所以可以直接push
           } else {
-            aData.on[event] = handler
+            aData.on[event] = handler // 没有对应监听器则直接添加
           }
         }
 

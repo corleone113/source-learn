@@ -10,7 +10,7 @@ const commaRE = /%2C/g
 // - escapes [!'()*]
 // - preserve commas
 const encode = str => encodeURIComponent(str)
-  .replace(encodeReserveRE, encodeReserveReplacer) // 将 ! ' ( ) * 进行转码
+  .replace(encodeReserveRE, encodeReserveReplacer) // 对 ! ' ( ) * 进行转码
   .replace(commaRE, ',') // 对逗号进行还原
 
 const decode = decodeURIComponent
@@ -38,9 +38,9 @@ export function resolveQuery ( // 基于查询字符串和额外查询参数对�
 function parseQuery (query: string): Dictionary<string> { // 将查询字符串转化为对象形式
   const res = {}
 
-  query = query.trim().replace(/^(\?|#|&)/, '') // 去掉前置的 ？ # &
+  query = query.trim().replace(/^(\?|#|&)/, '') // 去掉前置的 ? # &
 
-  if (!query) {
+  if (!query) { // 空字串则直接返回空对象
     return res
   }
 

@@ -81,8 +81,8 @@ export default class VueRouter {
     return this.history && this.history.current
   }
 
-  init (app: any /* Vue component instance */) { // 在install中调用，与配置该router的组件实例关联起来，并进行其它一些初始化工作
-    process.env.NODE_ENV !== 'production' && assert( // 确保已经安装了vue-router插件
+  init (app: any /* Vue component instance */) { // init方法在install方法中调用，与配置该router的组件实例关联起来，并进行其它一些初始化工作
+    process.env.NODE_ENV !== 'production' && assert( // 确保调用init方法时已经安装了vue-router插件
       install.installed,
       `not installed. Make sure to call \`Vue.use(VueRouter)\` ` +
       `before creating root instance.`
@@ -92,9 +92,9 @@ export default class VueRouter {
 
     // set up app destroyed handler
     // https://github.com/vuejs/vue-router/issues/2639
-    app.$once('hook:destroyed', () => { // 为app绑定卸载钩子
+    app.$once('hook:destroyed', () => { // 为app绑定卸载钩子监听器
       // clean out app from this.apps array once destroyed
-      const index = this.apps.indexOf(app) // 获取该组件实例的索引
+      const index = this.apps.indexOf(app) // 获取该组件实例在缓存数组中的索引
       if (index > -1) this.apps.splice(index, 1) // 从缓存中移除
       // ensure we still have a main app or null if no apps
       // we do not release the router so it can be reused
@@ -127,15 +127,15 @@ export default class VueRouter {
           handleScroll(this, routeOrError, from, false) // 处理滚动
         }
       }
-      const setupListeners = (routeOrError) => { // 初次导航完成(不管成功还是失败)时的监听器
+      const setupListeners = (routeOrError) => { // 注册初次导航完成(不管成功还是失败)时的监听器
         history.setupListeners() // 注册滚动和导航的事件监听器和清理监听器的回调
         handleInitialScroll(routeOrError)
       }
-      history.transitionTo(history.getCurrentLocation(), setupListeners, setupListeners) // 对当前URL路径进行初次，主要为了在哈希模式下替换URL路径。
+      history.transitionTo(history.getCurrentLocation(), setupListeners, setupListeners) // 对当前URL路径进行初次导航，且无论成功还是失败都要注册事件(popstate,hashchange)监听器。
     }
 
     history.listen(route => { // 监听导航
-      this.apps.forEach((app) => { // 更新所有配置了该路由器的Vue实例的_route属性以便重新渲染
+      this.apps.forEach((app) => { // 更新所有配置了该路由器的Vue实例的_route属性以便出router-view组件的重新渲染
         app._route = route
       })
     })
@@ -153,7 +153,7 @@ export default class VueRouter {
     return registerHook(this.afterHooks, fn)
   }
 
-  onReady (cb: Function, errorCb?: Function) { // 注册路由准备完成时的监听器
+  onReady (cb: Function, errorCb?: Function) { // 注册初次导航完成时的监听器
     this.history.onReady(cb, errorCb)
   }
 
@@ -195,7 +195,7 @@ export default class VueRouter {
     this.go(1)
   }
 
-  getMatchedComponents (to?: RawLocation | Route): Array<any> { // 获取和指定路由/位置或当前路由匹配的组件数组
+  getMatchedComponents (to?: RawLocation | Route): Array<any> { // 获取和指定路由/位置或当前路由匹配的路由组件数组
     const route: any = to
       ? to.matched
         ? to // to为Route则使用to
@@ -238,7 +238,7 @@ export default class VueRouter {
       location,
       route,
       href,
-      // for backwards compat
+      // for backwards compat // 为了兼容之前的版本
       normalizedTo: location,
       resolved: route
     }

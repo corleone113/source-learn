@@ -11,7 +11,7 @@ export function install (Vue) {
 
   const isDef = v => v !== undefined
 
-  const registerInstance = (vm, callVal) => { // 为当前路由的路由匹配记录注册组件实例
+  const registerInstance = (vm, callVal) => { // 将组件实例注册到当前匹配的路由记录的instances中
     let i = vm.$options._parentVnode // 等价于vm.$vnode
     if (isDef(i) && isDef(i = i.data) && isDef(i = i.registerRouteInstance)) { // 到当前虚拟DOM节点的data上找registerRouteInstance方法，找到就调用它
       i(vm, callVal)
@@ -48,5 +48,5 @@ export function install (Vue) {
 
   const strats = Vue.config.optionMergeStrategies
   // use the same hook merging strategy for route hooks
-  strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
+  strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created // 路由组件的路由守卫使用与created钩子相同的合并策略
 }

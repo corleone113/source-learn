@@ -10,7 +10,7 @@ export function resolvePath ( // 根据相对路径、基路径 解析出绝对�
     return relative
   }
 
-  if (firstChar === '?' || firstChar === '#') { // 是查询字串或hash片段则与传入的基路径拼接起来再返回
+  if (firstChar === '?' || firstChar === '#') { // 是'?'或'#'开头则与传入的基路径拼接起来再返回
     return base + relative
   }
 
@@ -19,7 +19,7 @@ export function resolvePath ( // 根据相对路径、基路径 解析出绝对�
   // remove trailing segment if:
   // - not appending
   // - appending to trailing slash (last segment is empty)
-  if (!append || !stack[stack.length - 1]) { // append(来自router-link的append属性)为false或base以'/'结尾则删除statck最后一个元素——相当于去掉base末尾斜杠后面的部分。
+  if (!append || !stack[stack.length - 1]) { // append(来自router-link的append属性，表示附加模式)为false或base以'/'结尾则删除statck最后一个元素——相当于去掉base末尾斜杠后面的部分。
     stack.pop()
   }
 
@@ -68,6 +68,6 @@ export function parsePath (path: string): { // 将路径字符串分割为path,q
   }
 }
 
-export function cleanPath (path: string): string { // 将 双斜杠 // 替换为单斜杠
+export function cleanPath (path: string): string { // 将双斜杠替换为单斜杠
   return path.replace(/\/\//g, '/')
 }

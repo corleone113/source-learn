@@ -18,7 +18,7 @@ export default {
     // so that components rendered by router-view can resolve named slots
     const h = parent.$createElement // 复用router-view的父级组件实例上的h方法，这样router-view渲染的组件就能使用传给router-view的插槽内容了
     const name = props.name // 命名视图的名称
-    const route = parent.$route // 获取当前路由
+    const route = parent.$route // 获取当前路由，来自响应式属性_route
     const cache = parent._routerViewCache || (parent._routerViewCache = {})
 
     // determine current view depth, also check to see if the tree
@@ -27,7 +27,7 @@ export default {
     let inactive = false
     while (parent && parent._routerRoot !== parent) { // 向上层一直遍历到根组件实例
       const vnodeData = parent.$vnode ? parent.$vnode.data : {}
-      if (vnodeData.routerView) { // 标识该层父组件实例也是router-view的视图，则嵌套深度加1
+      if (vnodeData.routerView) { // 如果该层父组件实例也是router-view的视图，则嵌套深度加1
         depth++
       }
       if (vnodeData.keepAlive && parent._directInactive && parent._inactive) { // 父组件某层位于keep-alive组件中且当前处于失活状态
@@ -36,10 +36,8 @@ export default {
       parent = parent.$parent // 继续返回到上一层父组件实例
     }
     data.routerViewDepth = depth // 路由视图嵌套深度
-
     // render previous view if the tree is inactive and kept-alive
-    if (inactive) { // 这里的渲染似乎没什么用——因为inactive代表父组件视图当前已被移除
-      debugger
+    if (inactive) { // 这里的渲染似乎没什么用——因为inactive代表父组件视图当前已被移除，keep-alive由Vue内部控制，这里不需要做额外处理
       const cachedData = cache[name]
       const cachedComponent = cachedData && cachedData.component
       if (cachedComponent) {
@@ -55,8 +53,8 @@ export default {
       }
     }
 
-    const matched = route.matched[depth] // 获取对应嵌套层次的匹配路由记录
-    const component = matched && matched.components[name] // 根据name从路由记录获取路由组件
+    const matched = route.matched[depth] // 获取对应嵌套层次的匹配的路由记录
+    const component = matched && matched.components[name] // 根据name从路由记录获取对应的(应该渲染的)路由组件
 
     // render empty node if no matched route or no config component
     if (!matched || !component) { // 表示当前是非匹配路由
@@ -72,7 +70,7 @@ export default {
     data.registerRouteInstance = (vm, val) => { // 注册组件实例，以便在beforeRouteEnter传给next的回调中使用。初始化时vm和val相同,卸载阶段val为undefined
       // val could be undefined for unregistration
       const current = matched.instances[name] // 当前路由对应的组件实例
-      if ( // 当前视图组件实例过期或不存在则赋为val
+      if ( // 当前路由组件实例过期或不存在则赋为val
         (val && current !== vm) ||
         (!val && current === vm)
       ) {
@@ -92,7 +90,7 @@ export default {
       if (vnode.data.keepAlive &&
         vnode.componentInstance &&
         vnode.componentInstance !== matched.instances[name]
-      ) { // 在router-view视图组件vnode的init hook中比对更新组件实例，防止当包裹在keep-alive组件中时因激活状态切换导致组件实例失效
+      ) { // 在router-view视图组件vnode的init hook中比对更新组件实例，防止当包裹在keep-alive组件中时因激活状态切换导致组件实例过期/失效
         matched.instances[name] = vnode.componentInstance
       }
     }
@@ -120,7 +118,7 @@ function fillPropsinData (component, data, route, configProps) { // 填充props�
     // pass non-declared props as attrs
     const attrs = data.attrs = data.attrs || {}
     for (const key in propsToPass) {
-      if (!component.props || !(key in component.props)) { // 不在组件props配置对象中的属性都保存在配置对象attrs属性中
+      if (!component.props || !(key in component.props)) { // 组件没有配置props选项来接收的属性都保存在配置对象attrs属性中
         attrs[key] = propsToPass[key]
         delete propsToPass[key]
       }

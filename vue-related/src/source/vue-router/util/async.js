@@ -9,7 +9,7 @@ export function runQueue (queue: Array<?NavigationGuard>, fn: Function, cb: Func
         fn(queue[index], () => {
           step(index + 1)
         })
-      } else { // 当前遍历成员无效遍历下一个成员
+      } else { // 当前遍历成员无效则跳过
         step(index + 1)
       }
     }

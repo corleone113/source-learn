@@ -3,7 +3,7 @@
 import { _Vue } from '../install'
 import { warn, isError } from './warn'
 
-export function resolveAsyncComponents (matched: Array<RouteRecord>): Function { // 返回解析路由记录的异步组件的回调
+export function resolveAsyncComponents (matched: Array<RouteRecord>): Function { // 返回用于解析路由记录的异步组件的回调
   return (to, from, next) => { // 将作为守卫在导航时被执行，用于解析路由记录中的异步组件——有则进行解析处理，否则跳过
     let hasAsync = false
     let pending = 0
@@ -15,7 +15,7 @@ export function resolveAsyncComponents (matched: Array<RouteRecord>): Function {
       // we are not using Vue's default async resolving mechanism because
       // we want to halt the navigation until the incoming component has been
       // resolved.
-      if (typeof def === 'function' && def.cid === undefined) { // 是函数组件且没有cid属性就判定为异步组件
+      if (typeof def === 'function' && def.cid === undefined) { // 是函数且没有cid属性就判定为异步组件
         hasAsync = true
         pending++ // 标识处于解析状态的异步组件的数量
 
