@@ -23,7 +23,7 @@ export const mapState = normalizeNamespace((namespace, states) => {
         state = module.context.state
         getters = module.context.getters
       }
-      return typeof val === 'function' // 传入mapState的映射对象的属性值可以是函数或字符串/Symbol
+      return typeof val === 'function' // 传入mapState的映射对象的属性值可以是函数或字符串/Symbol，只有state属性名可以是Symbol，而getters/mutations/actions都不行。
         ? val.call(this, state, getters)
         : state[val] // val不为函数则以它为属性名在state上取值。
     }
@@ -81,7 +81,7 @@ export const mapGetters = normalizeNamespace((namespace, getters) => {
       if (namespace && !getModuleByNamespace(this.$store, 'mapGetters', namespace)) { // namespace不为空但找不到对应命名空间模块，则也退出
         return
       }
-      if (__DEV__ && !(val in this.$store.getters)) {
+      if (__DEV__ && !(val in this.$store.getters)) { // 找不到对应的getter也直接退出
         console.error(`[vuex] unknown getter: ${val}`)
         return
       }
@@ -165,9 +165,9 @@ function isValidMap (map) { // map应该是对象或数组。
  * @param {Function} fn
  * @return {Function}
  */
-function normalizeNamespace (fn) { // 将传入的函数接受的参数进行标准化处理，保证fn得到正确的输入参数
+function normalizeNamespace (fn) { // 对fn进行劫持，保证fn得到正确的输入参数
   return (namespace, map) => { // namespace是命名空间名称，map是用户提供的命名空间映射对象——将其中属性值对应getter/mutation/ation方法的名称，属性名为返回对象方法名，而返回对象中方法为map中那些属性值对应的getter/mutation/action。
-    if (typeof namespace !== 'string') { // 如果namesapce不是字符串，那么说明不是查找指定命名空间而是查找全局命名空间，且namespace应该是映射对象。
+    if (typeof namespace !== 'string') { // 如果namesapce不是字符串，那么将视为map映射对象。这种情况下如果要引用命名空间中的getter/mutation/action方法，那么属性值字符串应该加上命名空间名称前缀，也就是'xxx/'这样的字符串，超过一层则是'xxx/xxx/.../'这样的形式
       map = namespace
       namespace = '' // 此时namespace置为空字串即可。
     } else if (namespace.charAt(namespace.length - 1) !== '/') { // 如果namespace是字符串，但尾字符不是'/'，那么末尾补充'/'。
@@ -189,5 +189,5 @@ function getModuleByNamespace (store, helper, namespace) {
   if (__DEV__ && !module) { // 没有找到的话在开发模式下报错
     console.error(`[vuex] module namespace not found in ${helper}(): ${namespace}`)
   }
-  return module // 找到则返回。
+  return module
 }

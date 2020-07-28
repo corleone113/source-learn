@@ -26,7 +26,7 @@ export default function (Vue) {
       this.$store = typeof options.store === 'function'
         ? options.store()
         : options.store
-    } else if (options.parent && options.parent.$store) { // 组件通过父级组件注册store
+    } else if (options.parent && options.parent.$store) { // 非根组件通过父级组件注册store
       this.$store = options.parent.$store
     }
   }

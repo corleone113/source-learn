@@ -4,11 +4,11 @@ import { deepCopy } from '../util'
 
 export default function createLogger ({
   collapsed = true,
-  filter = (mutation, stateBefore, stateAfter) => true, // filter回调用于过滤状态变更
+  filter = (mutation, stateBefore, stateAfter) => true, // 状态变更过滤器
   transformer = state => state, // 状态转换器
   mutationTransformer = mut => mut, // mutation转换器
-  actionFilter = (action, state) => true, // action转换器
-  actionTransformer = act => act,
+  actionFilter = (action, state) => true, // action派发过滤器
+  actionTransformer = act => act, // action转换器
   logMutations = true,
   logActions = true,
   logger = console

@@ -19,7 +19,7 @@ export function find (list, f) {
  * @param {Array<Object>} cache
  * @return {*}
  */
-export function deepCopy (obj, cache = []) { // 返回对象的深拷贝，不过返回值是一个纯对象——Object的实例
+export function deepCopy (obj, cache = []) { // 返回对象的深拷贝，不过返回值是一个纯对象——Object的实例，且只会拷贝属性名为字符串的属性
   // just return if obj is immutable value
   if (obj === null || typeof obj !== 'object') {
     return obj

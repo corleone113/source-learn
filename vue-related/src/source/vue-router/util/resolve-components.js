@@ -47,7 +47,7 @@ export function resolveAsyncComponents (matched: Array<RouteRecord>): Function {
 
         let res
         try {
-          res = def(resolve, reject) // 获取结果
+          res = def(resolve, reject) // 如何是接收resolve/reject的回调则不会有返回值，而直接在回调中通过resolve/reject处理解析结果，否则返回一个Promise或对象，详情参考官方文档异步组件部分。
         } catch (e) {
           reject(e)
         }

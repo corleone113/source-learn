@@ -10,9 +10,9 @@ export default function devtoolPlugin (store) {
 
   store._devtoolHook = devtoolHook
 
-  devtoolHook.emit('vuex:init', store)
+  devtoolHook.emit('vuex:init', store) // 初始化devtools插件的store
 
-  devtoolHook.on('vuex:travel-to-state', targetState => { // 调试器变更state时同步store中的state。
+  devtoolHook.on('vuex:travel-to-state', targetState => { // devtools插件变更state时同步store中的state。
     store.replaceState(targetState)
   })
 
