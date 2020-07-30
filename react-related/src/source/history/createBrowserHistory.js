@@ -151,7 +151,7 @@ function createBrowserHistory(props = {}) {
   }
 
   function push(path, state) {
-    warning( // 传入了state且path为location对象则会发出警告
+    warning( // 传入了state且path为对象(location)但含有state属性则会发出警告
       !(
         typeof path === 'object' &&
         path.state !== undefined &&
@@ -201,7 +201,7 @@ function createBrowserHistory(props = {}) {
   }
 
   function replace(path, state) {
-    warning( // 传入了state且path为location对象则会发出警告
+    warning( // 传入了state且path为对象(location)但含有state属性则会发出警告
       !(
         typeof path === 'object' &&
         path.state !== undefined &&
