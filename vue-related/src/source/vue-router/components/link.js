@@ -149,7 +149,7 @@ export default {
         }
 
         const aAttrs = (a.data.attrs = extend({}, a.data.attrs)) // 浅拷贝attribute对象
-        aAttrs.href = href // 将href解析出的路径.
+        aAttrs.href = href // 将href设置为完整的URL路径.
         aAttrs['aria-current'] = ariaCurrentValue
       } else {
         // doesn't have <a> child, apply listener to self

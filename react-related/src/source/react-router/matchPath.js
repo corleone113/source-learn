@@ -6,7 +6,7 @@ let cacheCount = 0;
 
 function compilePath(path, options) { // 根据规则字符串和选项对象获取规则结果
   const cacheKey = `${options.end}${options.strict}${options.sensitive}`; // cache的键由配置对象的end、strict、sensitive等属性值组成
-  const pathCache = cache[cacheKey] || (cache[cacheKey] = {}); // 基于配置选项获取pathCache映射表
+  const pathCache = cache[cacheKey] || (cache[cacheKey] = {}); // 基于配置选项获取pathCache映射表，若不存在对应的pathCache则初始化为空对象。
 
   if (pathCache[path]) return pathCache[path]; // 如果符合path和options的规则结果缓存过则使用缓存
 
@@ -32,7 +32,7 @@ function matchPath(pathname, options = {}) { // 对URL路径和规则对象进�
 
   const { path, exact = false, strict = false, sensitive = false } = options; // 由options对象得到path、exact、strict、sensitive等参数
 
-  const paths = [].concat(path); // 得到path数组
+  const paths = [].concat(path); // 得到path数组——path prop可以设path字符串数组，此时exact,strict,sensitive等选项都为false。
 
   return paths.reduce((matched, path) => {
     if (!path && path !== "") return null; // path非法则直接跳过进行下一次匹配
@@ -61,7 +61,7 @@ function matchPath(pathname, options = {}) { // 对URL路径和规则对象进�
         return memo;
       }, {})
     };
-  }, null);
+  }, null); // match初始值为null——不匹配则返回null
 }
 
 export default matchPath;

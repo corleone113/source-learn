@@ -193,7 +193,7 @@ function matchRoute ( // match方法中基于location.path来进行匹配时所�
   // 返回true之前用匹配结果m和regex.keys对params进行属性填充
   for (let i = 1, len = m.length; i < len; ++i) { // 匹配到的路径参数分组是从索引1开始存放的
     const key = regex.keys[i - 1] // keys存放的都是路径参数配置对象，索引要从0开始
-    const val = typeof m[i] === 'string' ? decodeURIComponent(m[i]) : m[i] // 是字符串则进行编码
+    const val = typeof m[i] === 'string' ? decodeURIComponent(m[i]) : m[i] // 是字符串则进行解码
     if (key) {
       // Fix #1994: using * with props: true generates a param named 0 // 将通配符路径('*')或匿名路径参数('(.*)')转化名为pathMatch的路径参数。
       params[key.name || 'pathMatch'] = val

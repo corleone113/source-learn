@@ -33,7 +33,7 @@ function createMemoryHistory(props = {}) {
   }
 
   const index = clamp(initialIndex, 0, initialEntries.length - 1); // 得到合法的模拟历史记录索引值
-  const entries = initialEntries.map(entry => // 从路径数组转化为location数组。entries用于模拟历史记录栈
+  const entries = initialEntries.map(entry => // 从路径数组转化为location数组。location数组(entries)用于模拟历史记录栈
     typeof entry === 'string'
       ? createLocation(entry, undefined, createKey())
       : createLocation(entry, undefined, entry.key || createKey())

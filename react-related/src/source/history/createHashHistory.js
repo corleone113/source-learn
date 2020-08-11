@@ -88,7 +88,7 @@ function createHashHistory(props = {}) {
 
   const transitionManager = createTransitionManager();
 
-  function setState(nextState) { // 发起导航——更新location和action然后通知监听器执行
+  function setState(nextState) { //更新location和action然后通知监听器执行
     Object.assign(history, nextState);
     history.length = globalHistory.length; // 同步history.length(历史记录项数量)
     transitionManager.notifyListeners(history.location, history.action);
@@ -109,7 +109,7 @@ function createHashHistory(props = {}) {
 
     if (path !== encodedPath) { // 确保哈希路径的类型和规定的一致
       // Ensure we always have a properly-encoded hash.
-      replaceHashPath(encodedPath); // 这种情况只是替换URL，而不会发起导航
+      replaceHashPath(encodedPath); // 这种情况只是替换URL，而不会进行更新
     } else {
       const location = getDOMLocation(); // 获取当前URL的location对象
       const prevLocation = history.location;
@@ -118,7 +118,7 @@ function createHashHistory(props = {}) {
       // 当前fullpath是被忽略的则也不做处理
       if (ignorePath === createPath(location)) return; // Ignore this change; we already setState in push/replace.
 
-      ignorePath = null; // 重置
+      ignorePath = null; // 重置ignorePath
 
       handlePop(location);
     }
@@ -136,7 +136,7 @@ function createHashHistory(props = {}) {
         action,
         getUserConfirmation,
         ok => {
-          if (ok) { // 确认后发起导航
+          if (ok) { // 确认后则更新action和location，然后执行监听回调。
             setState({ action, location });
           } else { // 否则回滚
             revertPop(location);
@@ -227,14 +227,14 @@ function createHashHistory(props = {}) {
           nextPaths.push(path); // 添加导航后的fullpath；
           allPaths = nextPaths; // 重置缓存数组以保证push的fullpath总是最后一个缓存——使用和浏览器会话历史栈一样的管理方式
 
-          setState({ action, location }); // 直接发起导航
+          setState({ action, location });
         } else {
           warning( // 重复的push会发出警告
             false,
             'Hash history cannot PUSH the same path; a new entry will not be added to the history stack'
           );
 
-          setState(); // 但还是会发起导航
+          setState(); // 但还是会触发回调执行
         }
       }
     );
@@ -277,7 +277,7 @@ function createHashHistory(props = {}) {
 
         if (prevIndex !== -1) allPaths[prevIndex] = path; // 存在缓存则进行替换
 
-        setState({ action, location }); // 发起导航
+        setState({ action, location });
       }
     );
   }
@@ -316,7 +316,7 @@ function createHashHistory(props = {}) {
   function block(prompt = false) { // 设置提示信息
     const unblock = transitionManager.setPrompt(prompt);
 
-    if (!isBlocked) { // block没有调用过则添加hashchange监听器
+    if (!isBlocked) { // 还未设置过提示信息则为window.hashchange添加监听器
       checkDOMListeners(1);
       isBlocked = true;
     }

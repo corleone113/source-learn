@@ -29,7 +29,7 @@ class Router extends React.Component {
     this._pendingLocation = null; // 挂载完成前若存在跳转则location保存在这个属性上
 
     if (!props.staticContext) { // 非StaticRouter
-      this.unlisten = props.history.listen(location => { // Redirect组件会在挂载完成时调用history.replace/push进行跳转，又因为子组件实例比父组件实例先完成挂载，所以Router中Redirect会比Router先监听到location变化并执行回调，因此这里通过_pendingLocation在挂载完成保存最新的location,避免落后Redirect一步
+      this.unlisten = props.history.listen(location => { // Redirect组件会在挂载完成时调用history.replace/push进行跳转，又因为子组件实例比父组件实例先完成挂载，所以Router中Redirect会比Router先监听到location变化并执行回调，因此这里通过_pendingLocation在挂载完成前保存最新的location,避免落后Redirect一步
         if (this._isMounted) { // 若已完成挂载则更新自身状态的location对象
           this.setState({ location });
         } else { // 挂载完成前监听到location变化则将其保存在_pendingLocation中

@@ -78,14 +78,14 @@ declare type RouteRecord = { // 路由记录的类型
 }
 
 declare type Location = { // 代表URL地址的对象类型，此类型主要用于进行路由匹配
-  _normalized?: boolean; // 是否经过normalizeLocation处理
+  _normalized?: boolean; // 是否为标准化的location——是否可用于路由匹配
   name?: string; // 路由的name
   path?: string; // URL路径而不是匹配规则字符串
   hash?: string; // hash片段
   query?: Dictionary<string>; // 查询参数对象
   params?: Dictionary<string>; // 路径参数对象
   append?: boolean; // true表示拼接路径，false表示替换路径
-  replace?: boolean; // true表示调用router.push，false表示调用router.replace
+  replace?: boolean; // true表示调用router.replace，false表示调用router.push
 }
 
 declare type RawLocation = string | Location

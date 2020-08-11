@@ -50,14 +50,14 @@ function createBrowserHistory(props = {}) {
     ? stripTrailingSlash(addLeadingSlash(props.basename)) // 传入了basename则初始化为该值并添加首'/'和删除末尾'/'
     : ''; // 没有传入basename则初始化为''
 
-  function getDOMLocation(historyState) { //根据指定历史记录项的state获取location(目标位置)
+  function getDOMLocation(historyState) { //根据指定历史记录项的state创建location(目标位置)
     const { key, state } = historyState || {}; // 根据history获取key和state
     const { pathname, search, hash } = window.location; // 从window.location获取路径、查询字符串、哈希片段
 
     let path = pathname + search + hash; // 得到fullpath
 
     warning(
-      !basename || hasBasename(path, basename), // fullpath中不包含基路径则发出警告
+      !basename || hasBasename(path, basename), // 存在基路径的情况下fullpath中不包含基路径则发出警告
       'You are attempting to use a basename on a page whose URL path does not begin ' +
         'with the basename. Expected path "' +
         path +
@@ -79,7 +79,7 @@ function createBrowserHistory(props = {}) {
 
   const transitionManager = createTransitionManager();
 
-  function setState(nextState) { // 发起导航——更新location和action然后通知监听器执行
+  function setState(nextState) { // 更新location和action然后通知监听器执行
     Object.assign(history, nextState);
     history.length = globalHistory.length; // 同步history.length(历史记录项数量)
     transitionManager.notifyListeners(history.location, history.action);
@@ -108,9 +108,9 @@ function createBrowserHistory(props = {}) {
         action,
         getUserConfirmation,
         ok => {
-          if (ok) { // 确认后发起导航
+          if (ok) { // 确认后则更新action和location，然后执行监听回调。
             setState({ action, location });
-          } else { // 否则取消导航并后退到之前的页面
+          } else { // 否则回滚到之前的页面
             revertPop(location);
           }
         }
@@ -151,7 +151,7 @@ function createBrowserHistory(props = {}) {
   }
 
   function push(path, state) {
-    warning( // 传入了state且path为对象(location)但含有state属性则会发出警告
+    warning( // 传入了state但path为对象(location)且含有state属性则会发出警告
       !(
         typeof path === 'object' &&
         path.state !== undefined &&
@@ -230,11 +230,11 @@ function createBrowserHistory(props = {}) {
           if (forceRefresh) {
             window.location.replace(href); // 如果规定导航结束时强制刷新则修改URL触发刷新
           } else {
-            const prevIndex = allKeys.indexOf(history.location.key); // 找到该location.key第一个缓存索引
+            const prevIndex = allKeys.indexOf(history.location.key); // 找到导航前location.key第一个缓存索引
 
             if (prevIndex !== -1) allKeys[prevIndex] = location.key; // 只修改对应索引的key
 
-            setState({ action, location }); // 发起导航
+            setState({ action, location });
           }
         } else {
           warning( // 不支持pushState且传入了有效的state时发出警告
@@ -283,7 +283,7 @@ function createBrowserHistory(props = {}) {
   function block(prompt = false) { // 设置提示信息
     const unblock = transitionManager.setPrompt(prompt);
 
-    if (!isBlocked) { // 该history第一次调用block方法时为popstate/hashchange事件(可能含有)绑定监听器
+    if (!isBlocked) { // 还未设置过提示信息则为window.popstate/hashchange事件(可能含有)绑定监听器
       checkDOMListeners(1);
       isBlocked = true;
     }

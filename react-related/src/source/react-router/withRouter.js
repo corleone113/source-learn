@@ -45,7 +45,7 @@ function withRouter(Component) { // 让目标组件可以使用history、match�
     };
   }
 
-  return hoistStatics(C, Component); // 从原组件上拷贝名称为非React特有关键字的静态属性
+  return hoistStatics(C, Component); // 从原组件上拷贝名称为非React特有关键字的静态属性,同时让该组件不响应路由变化。
 }
 
 export default withRouter;
