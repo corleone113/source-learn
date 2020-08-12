@@ -34,8 +34,8 @@ export class Store {
     this._modules = new ModuleCollection(options) // 注册模块的模块树
     this._modulesNamespaceMap = Object.create(null) // 存放使用独立命名空间的模块的映射表
     this._subscribers = [] // 状态变更(通过commit执行mutation)时触发的回调数组，通过subscribe方法注册回调。
-    this._watcherVM = new Vue() // 注册该store实例的Vue实例(组件)
-    this._makeLocalGettersCache = Object.create(null) // 存放命名空间模块的getter对象——每个属性名为模块命名空间名称，而值为存放了该模块声明的getter的对象
+    this._watcherVM = new Vue() // 该store实例的内部Vue实例——用于注册订阅state/getter变更的回调(提供Vue实例@watch方法一样的功能)
+    this._makeLocalGettersCache = Object.create(null) // 存放命名空间模块的getters对象——每个属性名为模块命名空间名称，而值为存放了该模块声明的getter的对象
 
     // bind commit and dispatch to self
     const store = this
@@ -145,7 +145,7 @@ export class Store {
       }
     }
 
-    const result = entry.length > 1 // 遍历该action类型对应的action方法数组并执行各个action方法, 这里的actioin方法是封装过柯里化版本(实际的action方法收到第一个参数为store(来自闭包)，第二个参数才是payload),且返回promise
+    const result = entry.length > 1 // 遍历该action类型对应的action方法数组并执行各个action方法, 这里的actioin方法是封装过的柯里化版本(实际的action方法收到第一个参数为context(来自闭包，且含有state/getters/commit/dispatch/rootGetters/rootState等)，第二个参数才是payload),且返回promise
       ? Promise.all(entry.map(handler => handler(payload)))
       : entry[0](payload)
 
@@ -239,7 +239,7 @@ export class Store {
     return this._modules.isRegistered(path)
   }
 
-  hotUpdate (newOptions) { // 热更新store——先更新模块的getters,mutations,actions；然后重置store
+  hotUpdate (newOptions) { // 热更新store——先更新模块，然后重置store
     this._modules.update(newOptions)
     resetStore(this, true)
   }
@@ -278,11 +278,11 @@ function resetStore (store, hot) { // 重置store——重新初始化_actions,_
   resetStoreVM(store, state, hot)
 }
 
-function resetStoreVM (store, state, hot) { // 初始化/重置store的Vue实例对象。使用Vue实例是为了使用响应式更新等特性。
+function resetStoreVM (store, state, hot) { // 初始化/重置store的Vue实例对象。使用Vue实例主要是为了让state的变更可以触发响应式更新。
   const oldVm = store._vm // 获取旧得store Vue实例。
 
   // bind store public getters
-  store.getters = {} // 初始化getters对象——getters对象得属性值为getter方法计算后的值，是数据属性
+  store.getters = {} // 初始化getters对象——getters对象的属性值也是惰性的(getter属性)。
   // reset local getters cache
   store._makeLocalGettersCache = Object.create(null) // 重置_makeLocalettersCache对象
   const wrappedGetters = store._wrappedGetters
@@ -329,12 +329,12 @@ function resetStoreVM (store, state, hot) { // 初始化/重置store的Vue实例
 }
 
 function installModule (store, rootState, path, module, hot) { // 参数path为当前模块(对应传入的参数module)的键路径数组——比如root.moduleA.moduleAA的键路径数组就是['moduleA','moduleAA']
-  const isRoot = !path.length
+  const isRoot = !path.length // path为空数组那么就是根模块
   const namespace = store._modules.getNamespace(path) // 获取当前模块(参数module)的命名空间名称，未使用命名空间则得到空字符串
 
   // register in namespace map
-  if (module.namespaced) {
-    if (store._modulesNamespaceMap[namespace] && __DEV__) { // 当前模块已经在_modulesNamespaceMap中注册过了
+  if (module.namespaced) { // 当前模块是命名空间模块
+    if (store._modulesNamespaceMap[namespace] && __DEV__) { // 开发环境下如果当前模块已经在_modulesNamespaceMap中注册过则报错
       console.error(`[vuex] duplicate namespace ${namespace} for the namespaced module ${path.join('/')}`)
     }
     store._modulesNamespaceMap[namespace] = module // 将当前模块注册/覆盖到_modulesNamespaceMap中
@@ -342,7 +342,7 @@ function installModule (store, rootState, path, module, hot) { // 参数path为�
 
   // set state
   if (!isRoot && !hot) { // 若当前模块不是根模块且非热更新状态则在状态树中附加当前模块的状态
-    const parentState = getNestedState(rootState, path.slice(0, -1)) // path除开最后一个键组成键字符串(. 连接)即为当前模块父级模块的键路径。通过这个键路径访问根state就能得到父模块的state了。
+    const parentState = getNestedState(rootState, path.slice(0, -1)) // 状态树的结构和模块树的结构一致，这里通过path获取该模块state对应的父级state。
     const moduleName = path[path.length - 1] // path数组最后一个键即为当前模块(参数module)的名称
     store._withCommit(() => {
       if (__DEV__) {
@@ -370,7 +370,6 @@ function installModule (store, rootState, path, module, hot) { // 参数path为�
   })
 
   module.forEachGetter((getter, key) => { // 遍历当前模块的getter选项以注册getters选项中各个getter方法
-    if(key === Symbol.for('theMix')) debugger;
     const namespacedType = namespace + key
     registerGetter(store, namespacedType, getter, local)
   })
@@ -393,7 +392,7 @@ function makeLocalContext (store, namespace, path) { // 创建一个context，�
       const { payload, options } = args
       let { type } = args
 
-      if (!options || !options.root) { // 如果options.root为false则加上命名空间前缀(形式为'xxx/')，即options.root为true时访问全局命名空间中的action方法
+      if (!options || !options.root) { // 如果没有通过选项对象显式指定访问全局命名空间下的action方法就加上命名空间前缀(形式为'xxx/')
         type = namespace + type
         if (__DEV__ && !store._actions[type]) {
           console.error(`[vuex] unknown local action type: ${args.type}, global type: ${type}`)
@@ -409,7 +408,7 @@ function makeLocalContext (store, namespace, path) { // 创建一个context，�
       const { payload, options } = args
       let { type } = args
 
-      if (!options || !options.root) { // 如果没有通过选项对象显式指定访问全局命名空间下的action方法就加上命名空间前缀(形式为'xxx/')
+      if (!options || !options.root) { // 如果没有通过选项对象显式指定访问全局命名空间下的mutation方法就加上命名空间前缀(形式为'xxx/')
         type = namespace + type
         if (__DEV__ && !store._mutations[type]) {
           console.error(`[vuex] unknown local mutation type: ${args.type}, global type: ${type}`)
@@ -425,9 +424,9 @@ function makeLocalContext (store, namespace, path) { // 创建一个context，�
   // because they will be changed by vm update
   Object.defineProperties(local, {
     getters: {
-      get: noNamespace // 根据是否支持命名空间决定getter对象版本
-        ? () => store.getters // 全局命名空间getter对象
-        : () => makeLocalGetters(store, namespace) // 在makeLocalGetters中用到了store.getters、store._makeLocalGettersCache，而store.getters、store._makeLocalGettersCache在installModule调用时还没有初始化，所以这里如果不是使用getter(惰性属性)，那么会报错！
+      get: noNamespace // 根据是否支持命名空间决定getter属性版本
+        ? () => store.getters // 全局命名空间getter属性
+        : () => makeLocalGetters(store, namespace) // 在makeLocalGetters中用到了store.getters、store._makeLocalGettersCache，而store.getters、store._makeLocalGettersCache在installModule调用时还没有初始化，所以这里的getter属性必须是惰性的
     },
     state: {
       get: () => getNestedState(store.state, path) // 根据键路径数组取到当前模块的状态
@@ -437,11 +436,11 @@ function makeLocalContext (store, namespace, path) { // 创建一个context，�
   return local
 }
 
-function makeLocalGetters (store, namespace) { // 返回命名空间模块的getter对象。
-  if (!store._makeLocalGettersCache[namespace]) { // 如果_makeLocalGettersCache中还没有对应命名空间getter对象的缓存则生成对应对象并存入其中
+function makeLocalGetters (store, namespace) { // 返回命名空间模块的getters对象(保存getter的对象)。
+  if (!store._makeLocalGettersCache[namespace]) { // 如果_makeLocalGettersCache中还没有对应命名空间getters对象的缓存则生成对应对象并存入其中
     const gettersProxy = {}
     const splitPos = namespace.length
-    Object.keys(store.getters).forEach(type => { // getters中包含命名空间模块和非命名空间模块的getter，对于命名空间模块其getter名称就是 'xxx/xxx'
+    Object.keys(store.getters).forEach(type => { // store.getters中包含命名空间模块和非命名空间模块的getter，对于命名空间模块其getter名称就是 'xxx/xxx'
       // skip if the target getter is not match this namespace
       if (type.slice(0, splitPos) !== namespace) return // slice(0, splitPos)取出type中命名空间部分——即 'xxx/' 这部分，然后进行对比，不匹配则跳过
 
@@ -451,8 +450,8 @@ function makeLocalGetters (store, namespace) { // 返回命名空间模块的get
       // Add a port to the getters proxy.
       // Define as getter property because
       // we do not want to evaluate the getters in this time.
-      Object.defineProperty(gettersProxy, localType, { // 定义和命名空间模块对应的getter对象
-        get: () => store.getters[type],
+      Object.defineProperty(gettersProxy, localType, { // 为命名空间模块对应的getters对象定义对应的getter属性
+        get: () => store.getters[type], // 初始化安装模块的时候就会调用makeLocalGetters方法，而这个时候store.getters还没有初始化，所以要将getter定义为惰性属性。
         enumerable: true
       })
     })
@@ -480,7 +479,7 @@ function registerAction (store, type, handler, local) { // 注册action方法到
       rootGetters: store.getters,
       rootState: store.state
     }, payload)
-    if (!isPromise(res)) { // 不是promise则转化为promise
+    if (!isPromise(res)) { // action方法返回值应该是一个promise，不是promise则转化为promise
       res = Promise.resolve(res)
     }
     if (store._devtoolHook) { // _devtoolHook存在则说明当前浏览器支持vue-devtools插件
@@ -511,7 +510,7 @@ function registerGetter (store, type, rawGetter, local) { // 注册getter方法�
   }
 }
 
-function enableStrictMode (store) { // 开启严格模式——进至mutation之外的状态变更操作。
+function enableStrictMode (store) { // 开启严格模式——禁止mutation之外的状态变更操作。
   store._vm.$watch(function () { return this._data.$$state }, () => {
     if (__DEV__) {
       assert(store._committing, `do not mutate vuex store state outside mutation handlers.`)

@@ -21,7 +21,7 @@ export default class ModuleCollection {
     }, '')
   }
 
-  update (rawRootModule) { // 更新根模块(更新其内部模块选项对象的namespaced、getters、mutations、actions等属性)
+  update (rawRootModule) { // 递归地更新根模块(更新其内部模块选项对象的namespaced、getters、mutations、actions等属性)
     update([], this.root, rawRootModule)
   }
 
