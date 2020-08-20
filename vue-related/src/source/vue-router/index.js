@@ -233,7 +233,7 @@ export default class VueRouter {
     const route = this.match(location, current) // 获取导航目标匹配的路由
     const fullPath = route.redirectedFrom || route.fullPath // 完整路径，优先考虑重定向前的路径
     const base = this.history.base // 基路径
-    const href = createHref(base, fullPath, this.mode) // 获取当前模式下fullPath的完整路径
+    const href = createHref(base, fullPath, this.mode) // 基于fullpath获取href。
     return {
       location,
       route,

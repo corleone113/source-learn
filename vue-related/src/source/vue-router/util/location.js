@@ -46,7 +46,7 @@ export function normalizeLocation ( // 返回标准化的location对象，这个
   const parsedPath = parsePath(next.path || '') // 转化为包含path,query,hash三个字符串的对象。
   const basePath = (current && current.path) || '/' // 优先考虑当前路由的路径作为基路径，不存在则以'/'作为基路径
   const path = parsedPath.path
-    ? resolvePath(parsedPath.path, basePath, append || next.append) // 得到一个URL绝对路径字符串(带有路径参数)
+    ? resolvePath(parsedPath.path, basePath, append || next.append) // 得到一个URL绝对路径path(带有路径参数)
     : basePath // raw.path无法解析出路径部分(去掉了query和hash的剩余部分)则使用basePath作为返回location的path
 
   const query = resolveQuery( // 解析出查询参数对象

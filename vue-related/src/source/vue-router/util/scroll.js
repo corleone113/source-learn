@@ -21,7 +21,7 @@ export function setupScroll () { // 自定义浏览器前进/后退/跳跃(go)�
   const absolutePath = window.location.href.replace(protocolAndPath, '') // 得到URL绝对路径
   // preserve existing history state as it could be overriden by the user
   const stateCopy = extend({}, window.history.state)
-  stateCopy.key = getStateKey() // 复用缓存的时间戳key
+  stateCopy.key = getStateKey() // 复用缓存的时间戳key——因为是popstate事件
   window.history.replaceState(stateCopy, '', absolutePath) // 重置当前历史记录项，方便后续通过时间戳key复用滚动条坐标
   window.addEventListener('popstate', handlePopState) // 触发popstate时只是缓存滚动条坐标，而不会进行滚动
   return () => {

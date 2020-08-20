@@ -28,7 +28,7 @@ export function resolveQuery ( // 基于查询字符串和额外查询参数对�
     process.env.NODE_ENV !== 'production' && warn(false, e.message)
     parsedQuery = {}
   }
-  for (const key in extraQuery) { // 合并额外的查询参数
+  for (const key in extraQuery) { // 合并额外的查询参数对象
     const value = extraQuery[key]
     parsedQuery[key] = Array.isArray(value) ? value.map(v => '' + v) : '' + value
   }
@@ -46,7 +46,7 @@ function parseQuery (query: string): Dictionary<string> { // 将查询字符串�
 
   query.split('&').forEach(param => {
     const parts = param.replace(/\+/g, ' ').split('=') // + 替换为空格，然后分割出键和值
-    const key = decode(parts.shift()) // 获取查询参数名称，同时进行编码
+    const key = decode(parts.shift()) // 获取查询参数名称，同时进行解码
     const val = parts.length > 0
       ? decode(parts.join('=')) // 获取查询参数值并进行编码，这里加入防卫代码应对参数值含有等号的情况，
       : null

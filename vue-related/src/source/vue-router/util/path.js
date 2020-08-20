@@ -1,6 +1,6 @@
 /* @flow */
 
-export function resolvePath ( // 根据相对路径、基路径 解析出绝对路径。
+export function resolvePath ( // 根据相对路径、基路径 解析出绝对路径path。
   relative: string,
   base: string,
   append?: boolean

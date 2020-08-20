@@ -68,7 +68,7 @@ export class History {
     }
   }
 
-  onError (errorCb: Function) { // 注册路由准备失败的回调
+  onError (errorCb: Function) { // 注册导航失败的回调
     this.errorCbs.push(errorCb)
   }
 
@@ -170,7 +170,7 @@ export class History {
 
     this.pending = route
     const iterator = (hook: NavigationGuard, next) => { // 导航守卫的执行器
-      if (this.pending !== route) { // 导航中路由和当前路由不一样说明导航取消了
+      if (this.pending !== route) { // 导航中路由和目标路由不一样说明导航取消了
         return abort(createNavigationCancelledError(current, route))
       }
       try {

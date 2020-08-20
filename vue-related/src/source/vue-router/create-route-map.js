@@ -200,7 +200,7 @@ function normalizePath (
   strict?: boolean
 ): string {
   if (!strict) path = path.replace(/\/$/, '') // 如果strict为false则去掉path末尾斜杠
-  if (path[0] === '/') return path // 斜杠开头表示匹配绝对路径则不需要拼接，直接返回。
+  if (path[0] === '/') return path // 斜杠开头表示path匹配绝对路径则不需要拼接，直接返回。
   if (parent == null) return path // 父级路由不存在则也不需要拼接，直接返回。
   return cleanPath(`${parent.path}/${path}`) // 满足拼接条件，则与父级路由path拼接后返回。
 }
